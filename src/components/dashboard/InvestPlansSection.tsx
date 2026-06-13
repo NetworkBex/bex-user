@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Clock, Layers, Sparkles, TrendingUp } from 'lucide-react';
+import { Layers, Sparkles, Crown } from 'lucide-react';
 import { coreAPI } from '@/lib/api';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Progress';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { formatMoney } from '@/lib/ui';
+import { cn, formatMoney } from '@/lib/ui';
+
+const TIER_LABELS = ['Entry tier', 'Growth tier', 'Professional tier', 'Institutional tier'];
 
 function sortTiers(rows: any[]) {
   return [...rows].sort((a, b) => {
@@ -60,8 +61,10 @@ export function InvestPlansSection({ onStart, plans: externalPlans, loading: ext
             description="Investment tiers haven't been published yet — check back soon."
           />
         ) : (
-          <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
-            {plans.map((p: any) => <PlanTierCard key={p.invest_plan_id || p.id} plan={p} onStart={onStart} />)}
+          <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 pt-2">
+            {plans.map((p: any, i: number) => (
+              <PlanTierCard key={p.invest_plan_id || p.id} plan={p} index={i} popular={i === 1} onStart={onStart} />
+            ))}
           </div>
         )}
       </CardBody>
@@ -69,50 +72,66 @@ export function InvestPlansSection({ onStart, plans: externalPlans, loading: ext
   );
 }
 
-function PlanTierCard({ plan, onStart }: { plan: any; onStart: (planId: number | string) => void }) {
+function PlanTierCard({ plan, index, popular, onStart }: {
+  plan: any; index: number; popular?: boolean; onStart: (planId: number | string) => void;
+}) {
   const pct = parseFloat(plan.percentage) || 0;
   const days = parseInt(plan.duration) || 0;
-  const roi = pct * days; // projected total ROI over the cycle, %
+  const roi = pct * days;                 // projected total ROI over the cycle, %
+  const monthly = Math.round(pct * 30);   // ~monthly target, derived from daily rate
+  const tierLabel = TIER_LABELS[index] ?? 'Access tier';
 
   return (
-    <div className="flex flex-col rounded-xl border border-border bg-surface p-4 transition-colors hover:border-border-strong">
-      <div className="flex items-start justify-between gap-2">
-        <div className="text-sm font-semibold text-fg">{plan.name}</div>
-        <Badge tone="accent">
-          <Clock className="size-3" /> {days}-day cycle
-        </Badge>
-      </div>
-
-      <div className="mt-3 text-[20px] font-semibold tracking-tight tabular text-fg">
-        {formatMoney(plan.min_amount)}
-        <span className="text-fg-muted text-sm font-normal"> – {formatMoney(plan.max_amount)}</span>
-      </div>
-      <div className="text-[11px] uppercase tracking-wider text-fg-subtle font-semibold mt-0.5">Stake range</div>
-
-      <div className="mt-3 space-y-1.5 text-[12px] text-fg-muted">
-        <div className="flex items-center justify-between">
-          <span>Daily rate</span>
-          <span className="font-mono text-accent">{pct}%</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span>Projected ROI</span>
-          <span className="font-mono text-success inline-flex items-center gap-1">
-            <TrendingUp className="size-3" /> {roi.toFixed(1)}%
+    <div className={cn(
+      'relative flex flex-col rounded-2xl border bg-surface p-5 transition-colors',
+      popular
+        ? 'border-accent ring-1 ring-accent/30 shadow-[var(--shadow-pop)]'
+        : 'border-border hover:border-border-strong',
+    )}>
+      {popular && (
+        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-fg">
+            <Crown className="size-3" /> Most popular
           </span>
         </div>
-        <div className="flex items-center justify-between">
-          <span>Locked until</span>
-          <span className="font-mono">maturity</span>
-        </div>
+      )}
+
+      <div className="text-[10px] uppercase tracking-[0.18em] font-bold text-accent">{tierLabel}</div>
+      <div className="mt-1 text-[22px] font-semibold tracking-tight text-fg leading-none">{plan.name}</div>
+      <div className="mt-1.5 text-[12px] text-fg-muted tabular">
+        {formatMoney(plan.min_amount)} – {formatMoney(plan.max_amount)}
+      </div>
+
+      {/* Daily-return highlight */}
+      <div className="mt-4 rounded-xl border border-accent/15 bg-accent-soft/60 px-4 py-3 text-center">
+        <div className="text-[10px] uppercase tracking-wider font-semibold text-accent-fg/70">Daily return</div>
+        <div className="mt-0.5 text-[24px] font-semibold tracking-tight text-accent tabular">{pct}%</div>
+      </div>
+
+      {/* Metric rows */}
+      <div className="mt-4 border-t border-hairline divide-y divide-hairline">
+        <Metric label="Monthly target" value={`~${monthly}%`} />
+        <Metric label="Capital lock-up" value={`${days} Days`} />
+        <Metric label="Projected ROI" value={`${roi.toFixed(1)}%`} accent />
       </div>
 
       <Button
         size="sm"
-        className="mt-4 w-full"
+        variant={popular ? 'primary' : 'secondary'}
+        className="mt-5 w-full"
         onClick={() => onStart(plan.invest_plan_id || plan.id)}
       >
         Start cycle
       </Button>
+    </div>
+  );
+}
+
+function Metric({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="flex items-center justify-between py-2 text-[12px]">
+      <span className="text-fg-muted">{label}</span>
+      <span className={cn('font-semibold tabular', accent ? 'text-success' : 'text-fg')}>{value}</span>
     </div>
   );
 }
