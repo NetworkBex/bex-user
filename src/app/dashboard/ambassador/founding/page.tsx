@@ -75,8 +75,18 @@ export default function AmbassadorFoundingPage() {
               <span className="text-fg-muted">of {total} slots remaining</span>
             </div>
             <div className="mt-3 max-w-md">
-              <Progress value={pct} tone="accent" />
-              <div className="mt-1.5 text-[12px] text-fg-subtle tabular">{slotsFilled}/{total} claimed</div>
+              {slotsFilled > 0 ? (
+                <>
+                  <Progress value={pct} tone="accent" />
+                  <div className="mt-1.5 text-[12px] text-fg-subtle tabular">{slotsFilled}/{total} claimed</div>
+                </>
+              ) : (
+                // Pre-launch: don't show an empty "0/N claimed" bar — claims
+                // open at the Global Launch.
+                <div className="text-[12px] text-fg-subtle">
+                  Claiming opens at the Global Launch — all {total} founding slots are available.
+                </div>
+              )}
             </div>
           </div>
           <div className="shrink-0">
