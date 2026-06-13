@@ -83,15 +83,6 @@ export const CHAINS: Record<number, ChainConfig> = {
     explorer: 'https://arbiscan.io',
     testnet: false,
   },
-  11155111: {
-    id: 11155111,
-    name: 'Sepolia',
-    shortName: 'SEP',
-    symbol: 'ETH',
-    rpc: 'https://ethereum-sepolia-rpc.publicnode.com',
-    explorer: 'https://sepolia.etherscan.io',
-    testnet: true,
-  },
 };
 
 /* ─── Currency registry ──────────────────────────────────────────── */
@@ -135,9 +126,6 @@ export const CURRENCIES: Currency[] = [
   // ─ Base
   { id: 'eth-base',  symbol: 'ETH',  name: 'Ether',           chainId: 8453,     native: true,  decimals: 18 },
   { id: 'usdc-base', symbol: 'USDC', name: 'USD Coin',        chainId: 8453,     native: false, decimals: 6, contract: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' },
-
-  // ─ Sepolia (testnet)
-  { id: 'eth-sep',   symbol: 'ETH',  name: 'Sepolia ether',   chainId: 11155111, native: true,  decimals: 18 },
 ];
 
 export function currenciesForChain(chainId: number): Currency[] {
@@ -149,7 +137,7 @@ export function currencyById(id: string): Currency | undefined {
 }
 
 export const DEFAULT_CHAIN_ID =
-  Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 11155111; // Sepolia by default for dev
+  Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 1; // Ethereum mainnet
 
 /** BEX treasury address — destination for "Deposit to BEX" transfers. */
 export const TREASURY_ADDRESS =
@@ -251,7 +239,9 @@ export function loadStoredKeystore(): string | null {
 export function loadStoredChainId(): number {
   if (typeof window === 'undefined') return DEFAULT_CHAIN_ID;
   const v = localStorage.getItem(STORAGE_KEYS.chainId);
-  return v ? Number(v) : DEFAULT_CHAIN_ID;
+  const n = v ? Number(v) : DEFAULT_CHAIN_ID;
+  // Guard against a stale stored network (e.g. the removed Sepolia testnet).
+  return CHAINS[n] ? n : DEFAULT_CHAIN_ID;
 }
 
 export function persistWallet({ address, keystore }: { address: string; keystore: string }) {

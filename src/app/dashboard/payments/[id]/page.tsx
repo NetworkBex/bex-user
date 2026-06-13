@@ -119,7 +119,7 @@ export default function PaymentDetailPage() {
     <>
       <PageHeader
         title="Payment status"
-        description="Track the lifecycle of your NOWPayments deposit."
+        description="Track the lifecycle of your deposit."
         breadcrumb={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Transactions', href: '/dashboard/transactions' },
@@ -208,7 +208,7 @@ export default function PaymentDetailPage() {
               <CardBody className="p-4 flex gap-3 text-[13px] text-fg-muted">
                 <Clock className="size-4 text-accent shrink-0 mt-0.5" />
                 <span>
-                  <span className="text-fg font-medium">Auto-refresh active.</span> This page checks NOWPayments every few seconds until your payment reaches a final state.
+                  <span className="text-fg font-medium">Auto-refresh active.</span> This page checks your payment every few seconds until it reaches a final state.
                 </span>
               </CardBody>
             </Card>

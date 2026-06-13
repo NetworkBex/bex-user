@@ -15,10 +15,12 @@ import { WalletDepositDialog } from '@/components/wallet/WalletDepositDialog';
 import { CHAINS, currenciesForChain, currencyById } from '@/lib/wallet';
 import { formatMoney } from '@/lib/ui';
 
+// NOWPayments is the primary method (shown first, default-selected) and is
+// presented generically — the gateway brand is never surfaced to users.
 const METHODS = [
+  { id: 'nowpayments',label: 'Instant deposit',  desc: 'Pay by card or 40+ cryptocurrencies — auto-credited on confirmation.', icon: <CreditCard className="size-4" /> },
   { id: 'bex_wallet', label: 'BEX wallet',       desc: 'Send instantly from your in-browser wallet.', icon: <Wallet className="size-4" /> },
   { id: 'wallet',     label: 'External wallet',  desc: 'Send from any external Web3 wallet.',         icon: <Wallet className="size-4" /> },
-  { id: 'nowpayments',label: 'NOWPayments',      desc: 'Hosted checkout, 40+ assets.',                icon: <CreditCard className="size-4" /> },
 ];
 
 const QUICK = [100, 500, 1_000, 5_000, 10_000];
@@ -30,7 +32,7 @@ export default function DepositPage() {
   const [amount, setAmount] = useState('');
   const [networkId, setNetworkId] = useState<number>(chainId);
   const [currencyId, setCurrencyId] = useState<string>('');
-  const [method, setMethod] = useState('bex_wallet');
+  const [method, setMethod] = useState('nowpayments');
   const [loading, setLoading] = useState(false);
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -88,7 +90,7 @@ export default function DepositPage() {
         });
         const url = res.data?.invoice_url;
         if (!url) {
-          toast('Could not open NOWPayments checkout', 'error');
+          toast('Could not open the checkout', 'error');
           return;
         }
         // Hand off to NOWPayments. The hosted invoice will redirect back to
@@ -96,7 +98,7 @@ export default function DepositPage() {
         window.location.href = url;
         return;
       } catch (err: any) {
-        toast(err?.response?.data?.error || 'NOWPayments invoice failed', 'error');
+        toast(err?.response?.data?.error || 'Could not start the deposit', 'error');
         return;
       } finally { setLoading(false); }
     }
@@ -122,7 +124,7 @@ export default function DepositPage() {
   const methodMeta = METHODS.find((m) => m.id === method);
   const confirmNote =
     method === 'bex_wallet'   ? "You'll sign this transfer with your BEX wallet in the next step."
-    : method === 'nowpayments' ? "You'll be redirected to the NOWPayments hosted checkout to complete payment."
+    : method === 'nowpayments' ? "You'll be redirected to our secure checkout to complete payment."
     : 'This submits a deposit request — your balance is credited after confirmation.';
 
   return (
@@ -235,7 +237,7 @@ export default function DepositPage() {
               >
                 {loading ? 'Processing…' :
                  method === 'bex_wallet'  ? 'Continue with BEX wallet' :
-                 method === 'nowpayments' ? 'Continue to NOWPayments' :
+                 method === 'nowpayments' ? 'Continue to checkout' :
                                             'Submit deposit request'}
               </Button>
             </form>

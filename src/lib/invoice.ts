@@ -92,7 +92,7 @@ const METHOD_LABEL: Record<string, string> = {
   acc_balance: 'Account balance',
   bex_wallet:  'BEX wallet',
   wallet:      'Crypto wallet',
-  nowpayments: 'NOWPayments checkout',
+  nowpayments: 'Card / Crypto checkout',
   bank:        'Bank transfer',
   admin:       'Admin adjustment',
 };
