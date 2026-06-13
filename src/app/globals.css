@@ -1,0 +1,482 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────
+   BEX Design System — token layer
+   • OKLCH for perceptually-even color stops
+   • Semantic surface roles (canvas / surface / elevated / sunk)
+   • Dual theme (light + dark); .dark on <html> selects dark
+   ───────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Neutrals — light theme defaults */
+  --canvas:        oklch(99% 0.005 250);
+  --surface:       oklch(100% 0 0);
+  --surface-2:     oklch(96.5% 0.006 250);
+  --surface-sunk:  oklch(94.5% 0.008 250);
+  --border:        oklch(86% 0.012 250);
+  --border-strong: oklch(74% 0.014 250);
+  --hairline:      oklch(90% 0.01 250);
+
+  --fg:            oklch(17% 0.02 260);
+  --fg-muted:      oklch(35% 0.018 260);   /* was 45 — too pale */
+  --fg-subtle:     oklch(50% 0.015 260);   /* was 62 — too pale */
+  --fg-inverse:    oklch(98% 0 0);
+
+  /* Brand — electric mint accent (verifier green, calm) */
+  --accent:        oklch(64% 0.18 165);
+  --accent-strong: oklch(56% 0.19 165);
+  --accent-soft:   oklch(93% 0.07 165);
+  --accent-fg:     oklch(15% 0.06 165);
+
+  /* Semantic */
+  --success:       oklch(58% 0.16 155);
+  --success-soft:  oklch(94% 0.06 155);
+  --warning:       oklch(60% 0.15 75);
+  --warning-soft:  oklch(95% 0.07 80);
+  --danger:        oklch(55% 0.22 27);
+  --danger-soft:   oklch(94% 0.05 27);
+  --info:          oklch(55% 0.17 250);
+  --info-soft:     oklch(94% 0.05 250);
+
+  /* Focus ring */
+  --ring:          oklch(64% 0.18 165 / 0.4);
+
+  /* Radii */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+  --r-pill: 999px;
+
+  /* Elevation (light) */
+  --shadow-sm: 0 1px 2px oklch(20% 0.02 260 / 0.06);
+  --shadow-md: 0 1px 2px oklch(20% 0.02 260 / 0.07), 0 4px 12px oklch(20% 0.02 260 / 0.07);
+  --shadow-lg: 0 2px 4px oklch(20% 0.02 260 / 0.07), 0 12px 32px oklch(20% 0.02 260 / 0.09);
+  --shadow-pop: 0 8px 28px oklch(20% 0.02 260 / 0.14);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-fast: 120ms;
+  --t-base: 180ms;
+  --t-slow: 280ms;
+
+  /* Type scale */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+.dark {
+  --canvas:        oklch(15% 0.012 260);
+  --surface:       oklch(19% 0.014 260);
+  --surface-2:     oklch(23% 0.016 260);
+  --surface-sunk:  oklch(13% 0.012 260);
+  --border:        oklch(32% 0.02 260);
+  --border-strong: oklch(45% 0.022 260);
+  --hairline:      oklch(27% 0.018 260);
+
+  --fg:            oklch(98% 0.004 250);
+  --fg-muted:      oklch(80% 0.012 250);   /* was 72 — bump for AA */
+  --fg-subtle:     oklch(68% 0.014 250);   /* was 58 — bump for AA */
+  --fg-inverse:    oklch(15% 0.012 260);
+
+  --accent:        oklch(82% 0.18 165);
+  --accent-strong: oklch(88% 0.18 165);
+  --accent-soft:   oklch(32% 0.09 165);
+  --accent-fg:     oklch(98% 0.02 165);
+
+  --success:       oklch(80% 0.17 155);
+  --success-soft:  oklch(28% 0.07 155);
+  --warning:       oklch(82% 0.17 80);
+  --warning-soft:  oklch(30% 0.08 80);
+  --danger:        oklch(74% 0.2 27);
+  --danger-soft:   oklch(30% 0.1 27);
+  --info:          oklch(78% 0.17 250);
+  --info-soft:     oklch(28% 0.08 250);
+
+  --ring:          oklch(82% 0.18 165 / 0.45);
+
+  --shadow-sm: 0 1px 2px #000000a0;
+  --shadow-md: 0 1px 2px #00000080, 0 4px 12px #00000060;
+  --shadow-lg: 0 2px 4px #00000080, 0 12px 32px #00000080;
+  --shadow-pop: 0 8px 28px #000000a0;
+}
+
+/* Map tokens into Tailwind v4 theme so utilities like bg-surface, text-fg, etc. work */
+@theme inline {
+  --color-canvas:        var(--canvas);
+  --color-surface:       var(--surface);
+  --color-surface-2:     var(--surface-2);
+  --color-surface-sunk:  var(--surface-sunk);
+  --color-border:        var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-hairline:      var(--hairline);
+  --color-fg:            var(--fg);
+  --color-fg-muted:      var(--fg-muted);
+  --color-fg-subtle:     var(--fg-subtle);
+  --color-fg-inverse:    var(--fg-inverse);
+  --color-accent:        var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft:   var(--accent-soft);
+  --color-accent-fg:     var(--accent-fg);
+  --color-success:       var(--success);
+  --color-success-soft:  var(--success-soft);
+  --color-warning:       var(--warning);
+  --color-warning-soft:  var(--warning-soft);
+  --color-danger:        var(--danger);
+  --color-danger-soft:   var(--danger-soft);
+  --color-info:          var(--info);
+  --color-info-soft:     var(--info-soft);
+  --color-ring:          var(--ring);
+
+  --radius-xs:  var(--r-xs);
+  --radius-sm:  var(--r-sm);
+  --radius-md:  var(--r-md);
+  --radius-lg:  var(--r-lg);
+  --radius-xl:  var(--r-xl);
+  --radius-2xl: var(--r-2xl);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* ─── Reset / base ─────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+html {
+  /* Base = 15 px so every Tailwind text-* token scales up uniformly without
+     editing each call site. text-sm becomes ~13.1 px, text-base ~15 px. */
+  font-size: 15px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html, body {
+  background: var(--canvas);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+}
+
+/* Headings get tighter tracking; body stays neutral. */
+h1, h2, h3, h4, h5, h6 { letter-spacing: -0.02em; line-height: 1.25; }
+
+/* Inputs and form controls inherit the larger base */
+input, select, textarea, button { font: inherit; }
+
+::selection { background: var(--accent-soft); color: var(--accent-fg); }
+
+/* Numbers should align — money / tables / KPIs */
+.tabular { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background-color: var(--fg-subtle); background-clip: padding-box; }
+
+/* Focus is non-negotiable */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* ─── Utility layer ────────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(110deg, var(--fg) 30%, var(--accent-strong));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, var(--hairline) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--hairline) 1px, transparent 1px);
+    background-size: 36px 36px;
+  }
+
+  /* Tighter, double-axis grid used on the hero — a major line every 5 cells */
+  .grid-bg-fine {
+    background-image:
+      linear-gradient(to right, var(--hairline) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--hairline) 1px, transparent 1px),
+      linear-gradient(to right, color-mix(in oklch, var(--border-strong) 60%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklch, var(--border-strong) 60%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px, 32px 32px, 160px 160px, 160px 160px;
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+
+  /* Animated grid drift used inside the hero */
+  .grid-bg-drift {
+    background-image:
+      linear-gradient(to right, var(--hairline) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--hairline) 1px, transparent 1px);
+    background-size: 48px 48px;
+    animation: grid-drift 30s linear infinite;
+  }
+
+  /* Perspective floor — common in trading terminals */
+  .grid-bg-perspective {
+    background-image:
+      linear-gradient(to right, color-mix(in oklch, var(--border-strong) 70%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklch, var(--border-strong) 70%, transparent) 1px, transparent 1px);
+    background-size: 60px 60px;
+    transform: perspective(800px) rotateX(58deg) translateY(20%) scale(1.6);
+    transform-origin: 50% 100%;
+    mask-image: linear-gradient(to top, black 0%, transparent 75%);
+    -webkit-mask-image: linear-gradient(to top, black 0%, transparent 75%);
+  }
+
+  /* Depth bars used in order-book rows */
+  .depth-bar {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    pointer-events: none;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* Animated price chart line that travels across the hero */
+  .price-line {
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 6px color-mix(in oklch, var(--accent) 50%, transparent));
+  }
+  .price-line-fill {
+    fill: url(#priceGradient);
+    opacity: 0.55;
+  }
+
+  .dot-bg {
+    background-image: radial-gradient(var(--border-strong) 0.5px, transparent 0.5px);
+    background-size: 14px 14px;
+  }
+
+  .mask-radial-fade {
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+
+  .glow-accent {
+    box-shadow:
+      0 0 0 1px color-mix(in oklch, var(--accent) 35%, transparent),
+      0 12px 40px -10px color-mix(in oklch, var(--accent) 35%, transparent);
+  }
+}
+
+/* ─── Component layer ──────────────────────────────────────────── */
+@layer components {
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .panel-elevated {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-md);
+  }
+  .panel-sunk {
+    background: var(--surface-sunk);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+  }
+
+  /* Legacy aliases so any un-refactored markup keeps working */
+  .glass-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .input-field {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--fg);
+    font: inherit;
+    outline: none;
+    transition: border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+  }
+  .input-field::placeholder { color: var(--fg-subtle); }
+  .input-field:hover { border-color: var(--border-strong); }
+  .input-field:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--ring);
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: var(--fg);
+    color: var(--fg-inverse);
+    border: 1px solid var(--fg);
+    border-radius: var(--r-md);
+    font-weight: 600; font-size: 0.875rem;
+    cursor: pointer;
+    transition: transform var(--t-fast), box-shadow var(--t-fast), opacity var(--t-fast);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: var(--surface);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    font-weight: 600; font-size: 0.875rem;
+    cursor: pointer;
+    transition: border-color var(--t-fast), background var(--t-fast), transform var(--t-fast);
+  }
+  .btn-secondary:hover { background: var(--surface-2); border-color: var(--border-strong); }
+
+  .btn-danger {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: var(--danger);
+    color: white;
+    border: 1px solid var(--danger);
+    border-radius: var(--r-md);
+    font-weight: 600; font-size: 0.875rem;
+    cursor: pointer;
+    transition: opacity var(--t-fast);
+  }
+  .btn-danger:hover { opacity: 0.9; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--r-pill);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border: 1px solid transparent;
+    line-height: 1.4;
+  }
+  .badge-success { background: var(--success-soft); color: var(--success); border-color: color-mix(in oklch, var(--success) 25%, transparent); }
+  .badge-warning { background: var(--warning-soft); color: var(--warning); border-color: color-mix(in oklch, var(--warning) 30%, transparent); }
+  .badge-danger  { background: var(--danger-soft);  color: var(--danger);  border-color: color-mix(in oklch, var(--danger) 25%, transparent); }
+  .badge-info    { background: var(--info-soft);    color: var(--info);    border-color: color-mix(in oklch, var(--info) 25%, transparent); }
+  .badge-neutral { background: var(--surface-2);    color: var(--fg-muted); border-color: var(--border); }
+
+  .kbd {
+    display: inline-flex; align-items: center; gap: 0.125rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    padding: 0.0625rem 0.375rem;
+    background: var(--surface-2);
+    color: var(--fg-muted);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: var(--r-xs);
+  }
+}
+
+/* ─── Animations ───────────────────────────────────────────────── */
+@keyframes fade-in   { from { opacity: 0 } to { opacity: 1 } }
+@keyframes rise-in   { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+@keyframes slide-in  { from { opacity: 0; transform: translateX(12px) } to { opacity: 1; transform: none } }
+@keyframes pulse-dot { 0%,100% { opacity: 1 } 50% { opacity: 0.45 } }
+@keyframes shimmer   { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
+@keyframes float-y   { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+@keyframes drift     { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(2%,-3%) scale(1.05) } }
+@keyframes glow-pulse{ 0%,100% { opacity: 0.55; transform: scale(1) } 50% { opacity: 0.9; transform: scale(1.06) } }
+@keyframes marquee   { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }
+@keyframes wave      { 0% { transform: translateX(-10%) } 100% { transform: translateX(10%) } }
+@keyframes counter-bump { 0% { transform: translateY(40%); opacity: 0 } 100% { transform: translateY(0); opacity: 1 } }
+@keyframes blink     { 50% { opacity: 0 } }
+
+/* Hero-only animations */
+@keyframes grid-drift { 0% { background-position: 0 0, 0 0 } 100% { background-position: 48px 48px, 48px 48px } }
+@keyframes beam-sweep { 0% { transform: translateX(-120%) skewX(-18deg) } 100% { transform: translateX(220%) skewX(-18deg) } }
+@keyframes orb-drift  { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(3%,-2%) scale(1.08) } }
+@keyframes tick-up    { 0% { transform: translateY(0); color: var(--success) } 50% { transform: translateY(-3px); color: var(--success) } 100% { transform: translateY(0); color: inherit } }
+@keyframes tick-down  { 0% { transform: translateY(0); color: var(--danger) } 50% { transform: translateY(3px); color: var(--danger) } 100% { transform: translateY(0); color: inherit } }
+@keyframes candle-grow { 0% { transform: scaleY(0.4); opacity: 0.4 } 100% { transform: scaleY(1); opacity: 1 } }
+@keyframes price-trace { 0% { stroke-dashoffset: 1000 } 100% { stroke-dashoffset: 0 } }
+@keyframes flash-bg   { 0% { background-color: transparent } 50% { background-color: color-mix(in oklch, var(--accent) 18%, transparent) } 100% { background-color: transparent } }
+@keyframes number-flip { 0% { transform: translateY(8%); opacity: 0 } 100% { transform: translateY(0); opacity: 1 } }
+
+.animate-fade-in   { animation: fade-in   var(--t-slow) var(--ease-out) both; }
+.animate-rise-in   { animation: rise-in   var(--t-slow) var(--ease-out) both; }
+.animate-slide-in  { animation: slide-in  var(--t-base) var(--ease-out) both; }
+.animate-pulse-dot { animation: pulse-dot 1.6s var(--ease-in-out) infinite; }
+.animate-float     { animation: float-y 5s var(--ease-in-out) infinite; }
+.animate-drift     { animation: drift 12s var(--ease-in-out) infinite; }
+.animate-glow      { animation: glow-pulse 4s var(--ease-in-out) infinite; }
+.animate-marquee   { animation: marquee 32s linear infinite; }
+.animate-wave      { animation: wave 9s var(--ease-in-out) infinite alternate; }
+.animate-counter   { animation: counter-bump 360ms var(--ease-out) both; }
+.animate-blink     { animation: blink 1.05s steps(1) infinite; }
+.animate-beam      { animation: beam-sweep 7s var(--ease-in-out) infinite; }
+.animate-orb       { animation: orb-drift 16s var(--ease-in-out) infinite; }
+.animate-tick-up   { animation: tick-up 420ms var(--ease-out); }
+.animate-tick-down { animation: tick-down 420ms var(--ease-out); }
+.animate-candle    { animation: candle-grow 700ms var(--ease-out) both; transform-origin: bottom; }
+.animate-price-trace { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: price-trace 2.6s var(--ease-out) forwards; }
+.animate-flash     { animation: flash-bg 1.4s var(--ease-out); }
+.animate-num-flip  { animation: number-flip 320ms var(--ease-out) both; }
+
+/* Reveal-on-scroll — pair with useInView. `is-visible` is the in-view state. */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+  will-change: opacity, transform;
+}
+.reveal.is-visible { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: 80ms; }
+.reveal-delay-2 { transition-delay: 160ms; }
+.reveal-delay-3 { transition-delay: 240ms; }
+.reveal-delay-4 { transition-delay: 320ms; }
+.reveal-delay-5 { transition-delay: 400ms; }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-sunk) 0, var(--surface-2) 50%, var(--surface-sunk) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: var(--r-sm);
+}
+
+/* Softer, attention-friendly variant for small text-level placeholders
+   (stat values, table cells) where a sweeping shimmer would be visually
+   noisy. Same surface tokens, just an opacity pulse. */
+.skeleton-pulse {
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  animation: skeleton-pulse 1.6s var(--ease-in-out) infinite;
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 0.95; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .reveal { opacity: 1; transform: none; }
+}

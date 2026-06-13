@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dubai skyline at night">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#0a0a1f"/>
+      <stop offset="50%" stop-color="#1a1a4a"/>
+      <stop offset="100%" stop-color="#3a2a6a"/>
+    </linearGradient>
+    <linearGradient id="burj" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#1f2a4a"/>
+      <stop offset="100%" stop-color="#0a0a1f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <!-- Stars -->
+  <g fill="#fff" opacity="0.6">
+    <circle cx="100" cy="80"  r="1"/>
+    <circle cx="300" cy="120" r="1"/>
+    <circle cx="550" cy="60"  r="1"/>
+    <circle cx="850" cy="100" r="1"/>
+    <circle cx="1100" cy="50" r="1"/>
+    <circle cx="1350" cy="130" r="1"/>
+    <circle cx="1500" cy="80" r="1"/>
+  </g>
+  <!-- Distant skyline -->
+  <g fill="#0a0a1f" opacity="0.9">
+    <rect x="0"    y="700" width="100" height="200"/>
+    <rect x="120"  y="650" width="80"  height="250"/>
+    <rect x="220"  y="680" width="60"  height="220"/>
+    <rect x="300"  y="600" width="50"  height="300"/>
+    <rect x="370"  y="640" width="100" height="260"/>
+    <rect x="490"  y="580" width="60"  height="320"/>
+    <rect x="570"  y="620" width="80"  height="280"/>
+    <!-- Burj Khalifa (tallest, left of center) -->
+    <path d="M 720 900 L 740 200 L 760 900 Z" fill="url(#burj)"/>
+    <path d="M 750 200 L 740 200 L 760 200 L 750 100 Z" fill="#0a0a1f"/>
+    <rect x="750" y="100" width="2" height="20" fill="#0a0a1f"/>
+    <rect x="780"  y="560" width="80"  height="340"/>
+    <rect x="880"  y="520" width="50"  height="380"/>
+    <rect x="950"  y="580" width="100" height="320"/>
+    <rect x="1070" y="540" width="60"  height="360"/>
+    <rect x="1150" y="600" width="80"  height="300"/>
+    <rect x="1250" y="560" width="100" height="340"/>
+    <rect x="1370" y="620" width="80"  height="280"/>
+    <rect x="1470" y="600" width="80"  height="300"/>
+    <rect x="1570" y="640" width="60"  height="260"/>
+  </g>
+  <!-- Window / city lights -->
+  <g fill="#ffd27a" opacity="0.85">
+    <rect x="140"  y="700" width="3" height="3"/><rect x="170" y="730" width="3" height="3"/>
+    <rect x="240"  y="720" width="3" height="3"/><rect x="260" y="750" width="3" height="3"/>
+    <rect x="320"  y="650" width="3" height="3"/><rect x="350" y="680" width="3" height="3"/>
+    <rect x="390"  y="700" width="3" height="3"/><rect x="420" y="720" width="3" height="3"/>
+    <rect x="460"  y="730" width="3" height="3"/>
+    <rect x="510"  y="640" width="3" height="3"/><rect x="540" y="670" width="3" height="3"/>
+    <rect x="590"  y="700" width="3" height="3"/><rect x="620" y="730" width="3" height="3"/>
+    <rect x="660"  y="680" width="3" height="3"/><rect x="690" y="710" width="3" height="3"/>
+    <!-- Burj lights -->
+    <rect x="745"  y="240" width="2" height="2"/><rect x="747" y="290" width="2" height="2"/>
+    <rect x="749"  y="340" width="2" height="2"/><rect x="751" y="390" width="2" height="2"/>
+    <rect x="753"  y="440" width="2" height="2"/><rect x="755" y="490" width="2" height="2"/>
+    <rect x="800"  y="620" width="3" height="3"/><rect x="830" y="650" width="3" height="3"/>
+    <rect x="900"  y="580" width="3" height="3"/><rect x="930" y="610" width="3" height="3"/>
+    <rect x="980"  y="640" width="3" height="3"/><rect x="1020" y="670" width="3" height="3"/>
+    <rect x="1090" y="600" width="3" height="3"/><rect x="1120" y="640" width="3" height="3"/>
+    <rect x="1170" y="660" width="3" height="3"/><rect x="1210" y="700" width="3" height="3"/>
+    <rect x="1280" y="620" width="3" height="3"/><rect x="1320" y="660" width="3" height="3"/>
+    <rect x="1400" y="680" width="3" height="3"/><rect x="1440" y="710" width="3" height="3"/>
+    <rect x="1500" y="660" width="3" height="3"/><rect x="1540" y="700" width="3" height="3"/>
+  </g>
+  <!-- Water reflection of Burj -->
+  <rect y="850" width="1600" height="50" fill="#0a0a1f" opacity="0.7"/>
+  <rect x="749" y="860" width="2" height="40" fill="#ffd27a" opacity="0.3"/>
+</svg>
