@@ -883,8 +883,7 @@ function BusinessModel() {
   ];
 
   const streams = [
-    { icon: <TrendingUp className="size-4" />, title: 'Trading Performance Fees', body: '25% of net profits — scales automatically with TVL growth.' },
-    { icon: <Coins className="size-4" />,      title: 'Tier Access Fees',         body: 'One-time 3–5% access fee on initial deposit for each tier level.' },
+    { icon: <TrendingUp className="size-4" />, title: 'Trading Performance Fees', body: '25% of net profits — scales automatically with TVL growth. No deposit or access fees, ever.' },
     { icon: <Users className="size-4" />,      title: 'Partner Ecosystem Volume', body: 'Affiliate growth drives TVL, multiplying absolute fee revenue.' },
     { icon: <Star className="size-4" />,       title: '$BEX Token Ecosystem',     body: 'Token buyback pressure, staking yield, and governance utility.' },
   ];
@@ -929,7 +928,7 @@ function BusinessModel() {
 
           <Reveal>
             <div>
-              <div className="text-[11px] uppercase tracking-[0.18em] text-accent font-semibold mb-5">Four revenue streams</div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-accent font-semibold mb-5">Three revenue streams</div>
               <ul className="space-y-5">
                 {streams.map((s) => (
                   <li key={s.title} className="flex items-start gap-3 pb-5 border-b border-hairline last:border-0 last:pb-0">
