@@ -7,6 +7,7 @@ import { DataTable, TR, TH, TD } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/Badge';
 import { useAmbassador } from '@/components/ambassador/AmbassadorProvider';
 import { RankBadge } from '@/components/ambassador/RankBadge';
+import { RankProgress } from '@/components/ambassador/RankProgress';
 import { formatMoney } from '@/lib/ui';
 
 export default function AmbassadorRanksPage() {
@@ -20,6 +21,9 @@ export default function AmbassadorRanksPage() {
         title="Ranks & milestones"
         description="Eight ranks, eight levels of freedom. Each rank unlocks deeper commission levels, larger bonus pools, and milestone gifts."
       />
+
+      {/* Progress to next rank — 3 criteria */}
+      <RankProgress />
 
       {/* Rank ladder */}
       <Card className="mb-6">
