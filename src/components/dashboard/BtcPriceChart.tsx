@@ -12,11 +12,53 @@ import { PulseDot, Badge } from '@/components/ui/Badge';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { cn, formatCompact, formatMoney } from '@/lib/ui';
 
-// Price data is proxied through our backend (Hyperliquid source) so the
-// browser never calls a geo-blocked third party (Binance returns 451).
+// Price-feed resolution. Binance blocks by IP/region (HTTP 451), and which
+// domain works depends on the viewer's network — including any VPN: global
+// users reach api.binance.com, US (and US-VPN) users reach api.binance.us.
+// GPS/timezone don't reflect the VPN's exit IP, so instead of guessing we try
+// each source in order and keep whichever the current network can actually
+// reach, falling back to our own backend proxy if Binance is unreachable.
 const API_BASE =
   (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) ||
   'https://api.bexnetwork.io/api';
+
+type PriceSource = {
+  klines: (interval: string, limit: number) => string;
+  ticker: () => string;
+};
+const binanceSource = (host: string): PriceSource => ({
+  klines: (iv, limit) => `${host}/api/v3/klines?symbol=BTCUSDT&interval=${iv}&limit=${limit}`,
+  ticker: () => `${host}/api/v3/ticker/24hr?symbol=BTCUSDT`,
+});
+// Order matters: global Binance first, then Binance US, then our proxy.
+const PRICE_SOURCES: PriceSource[] = [
+  binanceSource('https://api.binance.com'),
+  binanceSource('https://api.binance.us'),
+  {
+    klines: (iv, limit) => `${API_BASE}/core/btc-klines/?interval=${iv}&limit=${limit}`,
+    ticker: () => `${API_BASE}/core/btc-ticker/`,
+  },
+];
+// Remember the last source that worked so we try it first next time.
+let activeSourceIdx = 0;
+
+async function fetchJson(pick: (s: PriceSource) => string, signal?: AbortSignal): Promise<any> {
+  const order = [activeSourceIdx, ...PRICE_SOURCES.map((_, i) => i).filter((i) => i !== activeSourceIdx)];
+  let lastErr: any;
+  for (const i of order) {
+    try {
+      const res = await fetch(pick(PRICE_SOURCES[i]), { signal, cache: 'no-store' });
+      if (!res.ok) throw new Error(String(res.status));
+      const data = await res.json();
+      activeSourceIdx = i;          // stick with the first reachable source
+      return data;
+    } catch (e: any) {
+      if (e?.name === 'AbortError') throw e;
+      lastErr = e;                  // 451 / CORS / network → try the next source
+    }
+  }
+  throw lastErr || new Error('price feed unavailable');
+}
 
 const INTERVALS = [
   { value: '1m',  label: '1m',  longLabel: '1 minute'  },
@@ -91,19 +133,13 @@ function mapKlineRow(row: any[]): Candle {
 }
 
 async function fetchKlines(interval: Interval, limit = KLINES_LIMIT, signal?: AbortSignal): Promise<Candle[]> {
-  const url = `${API_BASE}/core/btc-klines/?interval=${interval}&limit=${limit}`;
-  const res = await fetch(url, { signal, cache: 'no-store' });
-  if (!res.ok) throw new Error(`klines ${res.status}`);
-  const data = await res.json();
+  const data = await fetchJson((s) => s.klines(interval, limit), signal);
   if (!Array.isArray(data)) throw new Error('klines: bad payload');
   return data.map(mapKlineRow);
 }
 
 async function fetchTicker(signal?: AbortSignal): Promise<Ticker> {
-  const url = `${API_BASE}/core/btc-ticker/`;
-  const res = await fetch(url, { signal, cache: 'no-store' });
-  if (!res.ok) throw new Error(`ticker ${res.status}`);
-  const d = await res.json();
+  const d = await fetchJson((s) => s.ticker(), signal);
   return {
     lastPrice:          parseFloat(d.lastPrice),
     priceChange:        parseFloat(d.priceChange),
