@@ -93,7 +93,7 @@ export default function DashboardPage() {
     authAPI.me().then((res) => setUser(res.data.customer)).catch(() => {});
     transactionAPI.list({ type: 'deposit' }).then((res) => setDeposits(res.data.results || res.data)).catch(() => {});
     investmentAPI.list().then((res) => setInvestments(res.data.results || res.data)).catch(() => {});
-    userAPI.referrals().then((res) => setReferrals(res.data)).catch(() => {});
+    userAPI.referrals().then((res) => setReferrals(res.data?.results || res.data || [])).catch(() => {});
     transactionAPI.list().then((res) => {
       const txns: any[] = res.data.results || res.data || [];
       const td = txns.filter((t: any) => t.type === 'deposit' && t.status === 3).reduce((s: number, t: any) => s + parseFloat(t.amount || 0), 0);
@@ -468,9 +468,48 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* The hero row already shows the full AnnouncementCard with the meta
-          grid, the hotel/flight pills, the qualification panel, and the
-          "Official Events" footer. The hero IS the single source of truth. */}
+      {/* ── TEAM SUMMARY ─────────────────────────────────────────── */}
+      <Card className="mb-6">
+        <CardHeader
+          title="Your team"
+          icon={<Users className="size-4" />}
+          description={`${referrals.length} direct ${referrals.length === 1 ? 'partner' : 'partners'}`}
+          action={
+            <Link href="/dashboard/ambassador/team" className="text-xs text-fg-muted hover:text-fg inline-flex items-center gap-1">
+              View team <ChevronRight className="size-3.5" />
+            </Link>
+          }
+        />
+        <CardDivider />
+        <CardBody className="pt-1">
+          {referrals.length === 0 ? (
+            <EmptyState
+              icon={<Users />}
+              title="No partners yet"
+              description="Share your referral link to start building your team and earning multi-level commissions."
+              action={<Link href="/dashboard/ambassador"><Button size="sm">Open ambassador hub</Button></Link>}
+            />
+          ) : (
+            <div className="grid sm:grid-cols-[auto_1fr] gap-6 items-start">
+              <div className="flex gap-5">
+                <TeamStat label="Direct partners" value={referrals.length} />
+                <TeamStat label="Active" value={referrals.filter((r: any) => r.status === 1).length} tone="success" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] uppercase tracking-wider font-semibold text-fg-muted mb-1.5">Recent partners</div>
+                <ul className="divide-y divide-hairline">
+                  {referrals.slice(0, 5).map((r: any, i: number) => (
+                    <li key={r.id || r.customer_id || i} className="flex items-center justify-between gap-3 py-2">
+                      <span className="text-[13px] text-fg truncate">{r.fullname || r.username || 'Partner'}</span>
+                      <span className="text-[11px] text-fg-subtle shrink-0 tabular">{shortDate(r.date_created)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </CardBody>
+      </Card>
 
       {/* ── RECENT DEPOSITS ──────────────────────────────────────── */}
       <Card>
@@ -533,6 +572,17 @@ export default function DashboardPage() {
 }
 
 /* ─── Helpers ──────────────────────────────────────────────────── */
+
+function TeamStat({ label, value, tone }: { label: string; value: number; tone?: 'success' }) {
+  return (
+    <div>
+      <div className={cn('text-[28px] font-semibold tabular leading-none', tone === 'success' ? 'text-success' : 'text-fg')}>
+        {value.toLocaleString()}
+      </div>
+      <div className="mt-1 text-[11px] uppercase tracking-wider font-semibold text-fg-muted">{label}</div>
+    </div>
+  );
+}
 
 function HeroMini({ label, value, tone }: { label: string; value: number | undefined; tone?: 'success' }) {
   return (
