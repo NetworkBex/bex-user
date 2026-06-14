@@ -2,21 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import {
-  Copy, Share2, ShieldCheck, Sparkles, TrendingUp, Users, Coins, Trophy,
+  ShieldCheck, Sparkles, TrendingUp, Users, Coins, Trophy,
   ArrowUpRight, AlertCircle,
 } from 'lucide-react';
 import { PageHeader } from '@/components/layout/AppShell';
 import { Card, CardBody, CardHeader, CardDivider } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Progress, Skeleton } from '@/components/ui/Progress';
-import { useToast } from '@/components/ToastProvider';
 import { authAPI, affiliateAPI } from '@/lib/api';
 import { useAmbassador } from '@/components/ambassador/AmbassadorProvider';
 import { RankBadge } from '@/components/ambassador/RankBadge';
 import { LevelLadder } from '@/components/ambassador/LevelLadder';
 import { StreamCard } from '@/components/ambassador/StreamCard';
+import { ReferralToolkit } from '@/components/dashboard/ReferralToolkit';
 import {
   matchingFor, nextRankOf, rankBonusFor, rankByKey, lrpTierFor, type FastStartStatus,
 } from '@/lib/affiliate';
@@ -24,7 +23,6 @@ import { formatMoney } from '@/lib/ui';
 
 export default function AmbassadorOverviewPage() {
   const { plan, me, earnings, loadingMe, loadingEarnings } = useAmbassador();
-  const { toast } = useToast() || { toast: (() => {}) as any };
   const [referrer, setReferrer] = useState<string | null>(null);
   const [fastStart, setFastStart] = useState<FastStartStatus | null>(null);
 
@@ -35,11 +33,6 @@ export default function AmbassadorOverviewPage() {
 
   const link = typeof window !== 'undefined' && referrer
     ? `${window.location.origin}/auth/register?ref=${referrer}` : '';
-  const copy = async () => { if (link) { await navigator.clipboard.writeText(link); toast('Link copied'); } };
-  const share = async () => {
-    if (navigator.share && link) { try { await navigator.share({ title: 'Join BEX Network', url: link }); } catch {} }
-    else copy();
-  };
 
   const current = me ? rankByKey(plan, me.rank) : null;
   const next    = me ? nextRankOf(plan, me.rank) : null;
@@ -173,15 +166,11 @@ export default function AmbassadorOverviewPage() {
           </Card>
         )}
 
-        {/* Referral link */}
+        {/* Referral toolkit — QR + WhatsApp / Telegram / copy */}
         <Card className={!fastStart || fastStart.daysRemaining === 0 ? 'lg:col-span-2' : ''}>
-          <CardHeader title="Your referral link" description="Use this to credit invitees to you." />
-          <CardBody className="pt-1 space-y-3">
-            <Input readOnly value={link} className="font-mono text-[13px]" />
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={copy} leadingIcon={<Copy className="size-4" />}>Copy</Button>
-              <Button variant="secondary" onClick={share} leadingIcon={<Share2 className="size-4" />}>Share</Button>
-            </div>
+          <CardHeader title="Referral toolkit" description="Share your link or QR — invitees are credited to your team." />
+          <CardBody className="pt-1">
+            <ReferralToolkit link={link} />
           </CardBody>
         </Card>
       </div>
