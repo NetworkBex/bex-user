@@ -12,9 +12,11 @@ import { PulseDot, Badge } from '@/components/ui/Badge';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { cn, formatCompact, formatMoney } from '@/lib/ui';
 
-const BINANCE_BASE =
-  (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_BINANCE_BASE) ||
-  'https://api.binance.com';
+// Price data is proxied through our backend (Hyperliquid source) so the
+// browser never calls a geo-blocked third party (Binance returns 451).
+const API_BASE =
+  (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) ||
+  'https://api.bexnetwork.io/api';
 
 const INTERVALS = [
   { value: '1m',  label: '1m',  longLabel: '1 minute'  },
@@ -89,7 +91,7 @@ function mapKlineRow(row: any[]): Candle {
 }
 
 async function fetchKlines(interval: Interval, limit = KLINES_LIMIT, signal?: AbortSignal): Promise<Candle[]> {
-  const url = `${BINANCE_BASE}/api/v3/klines?symbol=BTCUSDT&interval=${interval}&limit=${limit}`;
+  const url = `${API_BASE}/core/btc-klines/?interval=${interval}&limit=${limit}`;
   const res = await fetch(url, { signal, cache: 'no-store' });
   if (!res.ok) throw new Error(`klines ${res.status}`);
   const data = await res.json();
@@ -98,7 +100,7 @@ async function fetchKlines(interval: Interval, limit = KLINES_LIMIT, signal?: Ab
 }
 
 async function fetchTicker(signal?: AbortSignal): Promise<Ticker> {
-  const url = `${BINANCE_BASE}/api/v3/ticker/24hr?symbol=BTCUSDT`;
+  const url = `${API_BASE}/core/btc-ticker/`;
   const res = await fetch(url, { signal, cache: 'no-store' });
   if (!res.ok) throw new Error(`ticker ${res.status}`);
   const d = await res.json();
@@ -225,7 +227,7 @@ export function BtcPriceChart({ className, chartHeight = 420 }: { className?: st
     } catch (e: any) {
       if (e?.name === 'AbortError') return;
       if (!mountedRef.current) return;
-      setError(e?.message || 'Binance feed unavailable');
+      setError(e?.message || 'Price feed unavailable');
     } finally {
       if (mountedRef.current && !ctrl.signal.aborted) setLoading(false);
     }
@@ -334,7 +336,7 @@ export function BtcPriceChart({ className, chartHeight = 420 }: { className?: st
           <div className="w-full grid place-items-center" style={{ height: chartHeight }}>
             <div className="text-center">
               <TriangleAlert className="size-6 text-danger mx-auto mb-2" />
-              <p className="text-sm font-semibold text-fg">Binance feed unavailable</p>
+              <p className="text-sm font-semibold text-fg">Price feed unavailable</p>
               <p className="text-xs text-fg-muted mt-1 max-w-xs mx-auto">{error}</p>
               <Button
                 size="sm"
