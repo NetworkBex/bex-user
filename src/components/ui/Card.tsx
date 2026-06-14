@@ -4,9 +4,9 @@ import type { HTMLAttributes, ReactNode } from 'react';
 type CardVariant = 'default' | 'sunk' | 'elevated' | 'flush';
 
 const variantStyles: Record<CardVariant, string> = {
-  default:  'bg-surface border border-border shadow-[var(--shadow-sm)]',
-  sunk:     'bg-surface-sunk border border-border',
-  elevated: 'bg-surface border border-border shadow-[var(--shadow-md)]',
+  default:  'bg-[image:var(--surface-gloss)] border border-border shadow-[var(--shadow-sm),var(--highlight-top)]',
+  sunk:     'bg-surface-sunk border border-border shadow-[inset_0_1px_2px_oklch(20%_0.02_260_/_0.04)]',
+  elevated: 'bg-[image:var(--surface-gloss)] border border-border shadow-[var(--shadow-md),var(--highlight-top)]',
   flush:    'bg-transparent border-0',
 };
 

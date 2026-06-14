@@ -114,12 +114,15 @@ export function AppShell({ groups, user, brandHref = '/dashboard', brandSuffix, 
                       <Link
                         href={item.href}
                         className={cn(
-                          'group flex items-center gap-2.5 px-3 py-2 rounded-md text-[14px] transition-colors',
+                          'group relative flex items-center gap-2.5 px-3 py-2 rounded-md text-[14px] transition-all',
                           active
-                            ? 'bg-surface-sunk text-fg font-semibold'
+                            ? 'bg-[color-mix(in_oklch,var(--accent)_12%,var(--surface))] text-fg font-semibold ring-1 ring-[color-mix(in_oklch,var(--accent)_22%,transparent)] shadow-[var(--highlight-top)]'
                             : 'text-fg-muted hover:bg-surface-sunk/60 hover:text-fg'
                         )}
                       >
+                        {active && (
+                          <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" aria-hidden />
+                        )}
                         <span
                           className={cn(
                             '[&>svg]:size-4 shrink-0 transition-colors',
@@ -175,7 +178,7 @@ export function AppShell({ groups, user, brandHref = '/dashboard', brandSuffix, 
 
       {/* Main column — leaves room for the fixed sidebar on lg+ */}
       <div className="flex flex-col min-h-screen lg:pl-[260px]">
-        <header className="sticky top-0 z-30 bg-canvas/80 backdrop-blur-md border-b border-border h-14 flex items-center px-4 lg:px-6 gap-3">
+        <header className="sticky top-0 z-30 bg-canvas/65 backdrop-blur-xl backdrop-saturate-150 border-b border-hairline shadow-[0_1px_0_oklch(100%_0_0_/_0.04)] h-14 flex items-center px-4 lg:px-6 gap-3">
           <button
             className="lg:hidden text-fg-muted hover:text-fg"
             onClick={() => setMobileOpen(true)}
@@ -234,7 +237,7 @@ export function AppShell({ groups, user, brandHref = '/dashboard', brandSuffix, 
           onMouseDown={(e) => { if (e.target === e.currentTarget) setPaletteOpen(false); }}
         >
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative w-full max-w-lg bg-surface border border-border rounded-xl shadow-[var(--shadow-pop)] overflow-hidden animate-rise-in">
+          <div className="relative w-full max-w-lg glass rounded-xl shadow-[var(--shadow-pop)] overflow-hidden animate-rise-in">
             <div className="flex items-center gap-2 px-4 h-12 border-b border-hairline">
               <CmdIcon className="size-4 text-fg-subtle" />
               <input

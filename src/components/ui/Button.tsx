@@ -9,15 +9,15 @@ type Size = 'sm' | 'md' | 'lg' | 'icon';
 
 const variants: Record<Variant, string> = {
   primary:
-    'bg-fg text-fg-inverse border border-fg hover:opacity-90 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]',
+    'text-fg-inverse border border-fg bg-[image:var(--grad-fg)] hover:opacity-95 shadow-[var(--shadow-sm),inset_0_1px_0_oklch(100%_0_0_/_0.12)] hover:shadow-[var(--shadow-md),inset_0_1px_0_oklch(100%_0_0_/_0.16)]',
   secondary:
-    'bg-surface text-fg border border-border hover:bg-surface-2 hover:border-border-strong',
+    'bg-[image:var(--surface-gloss)] text-fg border border-border hover:border-border-strong shadow-[var(--shadow-sm),var(--highlight-top)]',
   ghost:
     'bg-transparent text-fg-muted border border-transparent hover:bg-surface-2 hover:text-fg',
   danger:
-    'bg-danger text-white border border-danger hover:opacity-90',
+    'text-white border border-danger bg-[image:var(--grad-danger)] hover:opacity-95 shadow-[var(--shadow-sm),inset_0_1px_0_oklch(100%_0_0_/_0.18)]',
   accent:
-    'bg-accent text-accent-fg border border-accent hover:bg-accent-strong',
+    'text-accent-fg border border-accent bg-[image:var(--grad-accent)] hover:bg-accent-strong shadow-[var(--shadow-sm),inset_0_1px_0_oklch(100%_0_0_/_0.2)]',
 };
 
 const sizes: Record<Size, string> = {
