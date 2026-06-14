@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowDownToLine, Coins, CreditCard, Wallet, Copy, Info, Sparkles } from 'lucide-react';
-import { transactionAPI, paymentAPI } from '@/lib/api';
+import { transactionAPI, paymentAPI, coreAPI } from '@/lib/api';
 import { useToast } from '@/components/ToastProvider';
 import { PageHeader } from '@/components/layout/AppShell';
 import { Card, CardBody, CardHeader, CardDivider } from '@/components/ui/Card';
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { WalletDepositDialog } from '@/components/wallet/WalletDepositDialog';
+import { ExternalDepositDialog } from '@/components/wallet/ExternalDepositDialog';
 import { CHAINS, currenciesForChain, currencyById } from '@/lib/wallet';
 import { formatMoney } from '@/lib/ui';
 
@@ -36,9 +37,23 @@ export default function DepositPage() {
   const [loading, setLoading] = useState(false);
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [extDepositOpen, setExtDepositOpen] = useState(false);
+  // Backend-managed deposit addresses keyed by asset symbol.
+  const [depositAddrs, setDepositAddrs] = useState<Record<string, string>>({});
 
   // Keep local network in sync if the user changes it in the wallet provider.
   useEffect(() => { setNetworkId(chainId); }, [chainId]);
+
+  // Load the BEX-controlled deposit addresses (per currency) from the backend.
+  useEffect(() => {
+    coreAPI.currencies().then((rows: any[]) => {
+      const m: Record<string, string> = {};
+      for (const c of rows) {
+        if (c.currency && c.address) m[String(c.currency).toUpperCase()] = c.address;
+      }
+      setDepositAddrs(m);
+    }).catch(() => {});
+  }, []);
 
   // Currency list is fully derived from the chosen network — no backend needed.
   const currencies = useMemo(() => currenciesForChain(networkId), [networkId]);
@@ -55,6 +70,7 @@ export default function DepositPage() {
 
   const chosenCurrency = currencyById(currencyId);
   const chosenChain = CHAINS[networkId] ?? chain;
+  const depositAddress = chosenCurrency ? (depositAddrs[chosenCurrency.symbol.toUpperCase()] || '') : '';
 
   const handleNetwork = (id: number) => {
     setNetworkId(id);
@@ -63,10 +79,12 @@ export default function DepositPage() {
     if (method === 'bex_wallet') setChainId(id);
   };
 
-  // Step 1 — validate the form, then ask the user to reconfirm.
+  // Step 1 — validate, then route. External wallet opens a dedicated
+  // instructions + tx-hash dialog; the rest go through the confirm step.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || !chosenCurrency) return;
+    if (method === 'wallet') { setExtDepositOpen(true); return; }
     setConfirmOpen(true);
   };
 
@@ -190,22 +208,52 @@ export default function DepositPage() {
 
               <div>
                 <div className="text-xs font-medium text-fg-muted mb-2">Method</div>
-                <div className="grid sm:grid-cols-3 gap-2">
-                  {METHODS.map((m) => {
+
+                {/* Featured — Instant deposit (primary) */}
+                {(() => {
+                  const m = METHODS.find((x) => x.id === 'nowpayments')!;
+                  const active = method === m.id;
+                  return (
+                    <label className={`relative flex items-center gap-3.5 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
+                      active ? 'border-accent bg-accent-soft/40' : 'border-border hover:border-border-strong'
+                    }`}>
+                      <input type="radio" name="method" value={m.id} checked={active} onChange={() => setMethod(m.id)} className="sr-only" />
+                      <span className="grid place-items-center size-10 rounded-lg bg-accent text-accent-fg shrink-0">{m.icon}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="flex items-center gap-2">
+                          <span className="text-[15px] font-semibold text-fg">{m.label}</span>
+                          <Badge tone="accent">Recommended</Badge>
+                        </span>
+                        <span className="block text-[12.5px] text-fg-muted mt-0.5">{m.desc}</span>
+                      </span>
+                      <span className={`size-4 rounded-full border-2 shrink-0 ${active ? 'border-accent bg-accent' : 'border-border'}`} />
+                    </label>
+                  );
+                })()}
+
+                {/* Divider */}
+                <div className="my-3 flex items-center gap-3 text-[10px] uppercase tracking-wider text-fg-subtle font-semibold">
+                  <span className="h-px flex-1 bg-hairline" /> or deposit from a crypto wallet <span className="h-px flex-1 bg-hairline" />
+                </div>
+
+                {/* Secondary — wallet methods */}
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {METHODS.filter((x) => x.id !== 'nowpayments').map((m) => {
                     const disabled = m.id === 'bex_wallet' && !hasWallet;
+                    const active = method === m.id;
                     return (
                       <label
                         key={m.id}
                         className={`relative flex items-start gap-3 p-3 rounded-lg border transition-colors ${
                           disabled
                             ? 'border-border bg-surface-sunk/40 opacity-60 cursor-not-allowed'
-                            : method === m.id
+                            : active
                               ? 'border-accent bg-accent-soft/40 cursor-pointer'
                               : 'border-border bg-surface-sunk/40 hover:border-border-strong cursor-pointer'
                         }`}
                       >
                         <input
-                          type="radio" name="method" value={m.id} checked={method === m.id}
+                          type="radio" name="method" value={m.id} checked={active}
                           onChange={() => setMethod(m.id)} disabled={disabled} className="sr-only"
                         />
                         <span className="text-accent shrink-0 mt-0.5">{m.icon}</span>
@@ -238,7 +286,7 @@ export default function DepositPage() {
                 {loading ? 'Processing…' :
                  method === 'bex_wallet'  ? 'Continue with BEX wallet' :
                  method === 'nowpayments' ? 'Continue to checkout' :
-                                            'Submit deposit request'}
+                                            'Continue to deposit'}
               </Button>
             </form>
           </CardBody>
@@ -267,22 +315,30 @@ export default function DepositPage() {
           )}
 
           <Card>
-            <CardHeader title="Wallet address" icon={<Coins className="size-4" />} description={`BEX-controlled address on ${chosenChain.name}.`} />
+            <CardHeader title={`${chosenCurrency?.symbol ?? 'Deposit'} address`} icon={<Coins className="size-4" />} description={`BEX-controlled address on ${chosenChain.name}.`} />
             <CardBody className="pt-1 space-y-3">
-              <div className="p-3 rounded-lg border border-dashed border-border-strong bg-surface-sunk/40 font-mono text-xs break-all">
-                0x9a2c1f4d8e6b3a91c5d72f8e6b3a91c5d72f6b1f
-              </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                leadingIcon={<Copy className="size-3.5" />}
-                onClick={() => { navigator.clipboard.writeText('0x9a2c1f4d8e6b3a91c5d72f8e6b3a91c5d72f6b1f'); toast('Address copied'); }}
-              >
-                Copy address
-              </Button>
-              <p className="text-[12px] text-fg-muted">
-                Make sure you're sending on the <span className="text-fg font-medium">{chosenChain.name}</span> network — funds sent on the wrong chain may be lost.
-              </p>
+              {depositAddress ? (
+                <>
+                  <div className="p-3 rounded-lg border border-dashed border-border-strong bg-surface-sunk/40 font-mono text-xs break-all">
+                    {depositAddress}
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    leadingIcon={<Copy className="size-3.5" />}
+                    onClick={() => { navigator.clipboard.writeText(depositAddress); toast('Address copied'); }}
+                  >
+                    Copy address
+                  </Button>
+                  <p className="text-[12px] text-fg-muted">
+                    Make sure you're sending on the <span className="text-fg font-medium">{chosenChain.name}</span> network — funds sent on the wrong chain may be lost.
+                  </p>
+                </>
+              ) : (
+                <p className="text-[12px] text-fg-muted">
+                  No deposit address is configured for {chosenCurrency?.symbol ?? 'this asset'} yet. Use <span className="text-fg font-medium">Instant deposit</span>, or contact support.
+                </p>
+              )}
             </CardBody>
           </Card>
 
@@ -302,6 +358,16 @@ export default function DepositPage() {
         open={walletDialogOpen}
         onClose={() => setWalletDialogOpen(false)}
         currencyId={chosenCurrency?.id ? undefined : undefined}
+      />
+
+      <ExternalDepositDialog
+        open={extDepositOpen}
+        onClose={() => setExtDepositOpen(false)}
+        amount={amount}
+        currency={chosenCurrency ? { id: chosenCurrency.id, symbol: chosenCurrency.symbol, name: chosenCurrency.name } : undefined}
+        chainName={chosenChain.name}
+        depositAddress={depositAddress}
+        onSubmitted={() => setAmount('')}
       />
 
       <ConfirmDialog
