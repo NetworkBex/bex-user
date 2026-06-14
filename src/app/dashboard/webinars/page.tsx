@@ -13,11 +13,13 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Progress';
 import { cn } from '@/lib/ui';
 
+type Host = { name: string; role?: string; avatar_url?: string };
 type Webinar = {
   id: number;
   title: string;
   description: string;
   speaker: string;
+  hosts: Host[];
   image_url: string;
   scheduled_for: string;
   ends_at: string;
@@ -26,6 +28,12 @@ type Webinar = {
   replay_url: string;
   status: 'live' | 'upcoming' | 'replay';
 };
+
+/** Normalize to a host list (falls back to the legacy single speaker). */
+function hostsOf(w: Webinar): Host[] {
+  if (w.hosts && w.hosts.length) return w.hosts;
+  return w.speaker ? [{ name: w.speaker }] : [];
+}
 
 /* ── date helpers ─────────────────────────────────────────────────── */
 const fmtDate = (s: string) =>
@@ -164,13 +172,40 @@ function StatusPill({ status }: { status: Webinar['status'] }) {
   return <Badge tone="neutral"><Play className="size-3" /> Replay</Badge>;
 }
 
-function Speaker({ name }: { name: string }) {
-  if (!name) return null;
+function HostAvatar({ h }: { h: Host }) {
+  return h.avatar_url
+    ? <img src={h.avatar_url} alt={h.name} className="size-6 rounded-full border-2 border-surface object-cover" loading="lazy" />
+    : <span className="size-6 rounded-full border-2 border-surface bg-surface-2 grid place-items-center text-fg-subtle"><User className="size-3" /></span>;
+}
+
+/** Compact host row: overlapping avatars + comma-joined names. */
+function Hosts({ w }: { w: Webinar }) {
+  const list = hostsOf(w);
+  if (!list.length) return null;
   return (
-    <span className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted">
-      <span className="grid place-items-center size-5 rounded-full bg-surface-2 text-fg-subtle"><User className="size-3" /></span>
-      {name}
+    <span className="inline-flex items-center gap-2 min-w-0">
+      <span className="flex -space-x-2">
+        {list.slice(0, 4).map((h, i) => <HostAvatar key={i} h={h} />)}
+      </span>
+      <span className="text-[12px] text-fg-muted truncate">{list.map((h) => h.name).join(', ')}</span>
     </span>
+  );
+}
+
+/** Detailed host list: avatar · name · role, one chip per host. */
+function HostsDetailed({ w }: { w: Webinar }) {
+  const list = hostsOf(w);
+  if (!list.length) return null;
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5">
+      {list.map((h, i) => (
+        <span key={i} className="inline-flex items-center gap-1.5 text-[12.5px]">
+          <HostAvatar h={h} />
+          <span className="text-fg font-medium">{h.name}</span>
+          {h.role ? <span className="text-fg-subtle">· {h.role}</span> : null}
+        </span>
+      ))}
+    </div>
   );
 }
 
@@ -186,7 +221,7 @@ function FeaturedWebinar({ w }: { w: Webinar }) {
             {w.status === 'live' ? 'Happening now' : `Next session · ${relWhen(w.scheduled_for)}`}
           </div>
           <h3 className="mt-2 text-[20px] md:text-[22px] font-semibold tracking-tight text-fg leading-snug">{w.title}</h3>
-          <Speaker name={w.speaker} />
+          <HostsDetailed w={w} />
           <p className="mt-3 text-[13.5px] text-fg-muted leading-relaxed line-clamp-3">{w.description}</p>
 
           <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12.5px] text-fg-muted">
@@ -220,7 +255,7 @@ function UpcomingCard({ w }: { w: Webinar }) {
       </Cover>
       <CardBody className="p-4 flex flex-col flex-1">
         <h3 className="text-[15px] font-semibold text-fg leading-snug line-clamp-2">{w.title}</h3>
-        <div className="mt-1.5"><Speaker name={w.speaker} /></div>
+        <div className="mt-1.5"><Hosts w={w} /></div>
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-fg-muted">
           <span className="inline-flex items-center gap-1"><Calendar className="size-3.5" /> {fmtDate(w.scheduled_for)}</span>
           <span className="inline-flex items-center gap-1"><Clock className="size-3.5" /> {fmtTime(w.scheduled_for)}</span>
@@ -258,7 +293,7 @@ function ReplayCard({ w }: { w: Webinar }) {
         <CardBody className="p-4 flex-1">
           <h3 className="text-[14.5px] font-semibold text-fg leading-snug line-clamp-2">{w.title}</h3>
           <div className="mt-1.5 flex items-center justify-between gap-2">
-            <Speaker name={w.speaker} />
+            <Hosts w={w} />
             <span className="text-[11.5px] text-fg-subtle">{fmtDate(w.scheduled_for)}</span>
           </div>
         </CardBody>
