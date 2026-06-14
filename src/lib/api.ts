@@ -89,6 +89,7 @@ export const coreAPI = {
   tradeStream: () => api.get('/core/trade-stream/'),
   announcements: () => api.get('/core/announcements/'),
   announcement: (id: number | string) => api.get(`/core/announcements/${id}/`),
+  webinars:    async () => asArray((await api.get('/core/webinars/')).data),
 };
 
 // Transactions
