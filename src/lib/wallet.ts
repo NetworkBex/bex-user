@@ -65,15 +65,6 @@ export const CHAINS: Record<number, ChainConfig> = {
     explorer: 'https://polygonscan.com',
     testnet: false,
   },
-  8453: {
-    id: 8453,
-    name: 'Base',
-    shortName: 'BASE',
-    symbol: 'ETH',
-    rpc: 'https://base-rpc.publicnode.com',
-    explorer: 'https://basescan.org',
-    testnet: false,
-  },
   42161: {
     id: 42161,
     name: 'Arbitrum',
@@ -122,10 +113,6 @@ export const CURRENCIES: Currency[] = [
   { id: 'pol-pol',   symbol: 'POL',  name: 'Polygon',         chainId: 137,      native: true,  decimals: 18 },
   { id: 'usdc-pol',  symbol: 'USDC', name: 'USD Coin',        chainId: 137,      native: false, decimals: 6, contract: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' },
   { id: 'usdt-pol',  symbol: 'USDT', name: 'Tether',          chainId: 137,      native: false, decimals: 6, contract: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F' },
-
-  // ─ Base
-  { id: 'eth-base',  symbol: 'ETH',  name: 'Ether',           chainId: 8453,     native: true,  decimals: 18 },
-  { id: 'usdc-base', symbol: 'USDC', name: 'USD Coin',        chainId: 8453,     native: false, decimals: 6, contract: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' },
 ];
 
 export function currenciesForChain(chainId: number): Currency[] {

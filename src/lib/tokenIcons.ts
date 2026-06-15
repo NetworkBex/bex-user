@@ -16,7 +16,6 @@ const BY_CHAIN: Record<number, string> = {
   1:     '/tokens/ethereum.png',
   137:   '/tokens/polygon.png',
   42161: '/tokens/arbitrum.png',
-  8453:  '/tokens/ethereum.png', // Base is an ETH L2 — reuse the ETH mark
 };
 
 export function tokenIcon(symbol?: string | null): string | null {
