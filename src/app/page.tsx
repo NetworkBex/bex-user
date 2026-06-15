@@ -163,7 +163,7 @@ function TickerDivider() {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden border-b border-hairline isolate">
+    <section className="dark relative overflow-hidden border-b border-hairline isolate bg-canvas text-fg">
       {/* Layered background: animated fine grid + perspective floor + ambient orbs + beam */}
       <HeroBackdrop />
 
@@ -214,9 +214,9 @@ function HeroBackdrop() {
       {/* Base canvas */}
       <div className="absolute inset-0 bg-canvas" />
 
-      {/* Looping trading backdrop video */}
+      {/* Looping trading backdrop video — clearly visible */}
       <video
-        className="absolute inset-0 h-full w-full object-cover opacity-35 mask-radial-fade pointer-events-none"
+        className="absolute inset-0 h-full w-full object-cover opacity-90 pointer-events-none"
         autoPlay
         loop
         muted
@@ -226,8 +226,9 @@ function HeroBackdrop() {
         <source src="https://res.cloudinary.com/dgzxh3ccq/video/upload/v1781522346/trading-backdrop_oitlqk.mp4" type="video/mp4" />
       </video>
 
-      {/* Tint over the video so foreground copy stays readable in both themes */}
-      <div className="absolute inset-0 bg-canvas/55" />
+      {/* Dark scrim over the video so the trades + copy keep strong contrast */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/55 to-black/75" />
+      <div className="absolute inset-0 bg-black/25" />
 
       {/* Animated fine grid with major lines every 5 cells */}
       <div className="absolute inset-0 grid-bg-fine mask-radial-fade opacity-90" />
