@@ -39,6 +39,7 @@ export default function HomePage() {
       <LiveTicker />
       <Hero />
       <TrustStrip />
+      <HyperliquidPartnership />
       <TickerDivider />
       <Services />
       <ExecutionShowcase />
@@ -338,6 +339,53 @@ function TrustStrip() {
   );
 }
 
+/* ──────────────────────── Hyperliquid partnership ───────────────────── */
+
+function HyperliquidPartnership() {
+  const points = [
+    { icon: <Boxes className="size-4" />,    t: 'Fully on-chain order book', d: 'Orders rest and fill transparently on-chain — no opaque internalization.' },
+    { icon: <Zap className="size-4" />,      t: 'Sub-second finality',       d: 'High-throughput matching with near-instant settlement on Hyperliquid’s L1.' },
+    { icon: <Activity className="size-4" />, t: 'Deep, real liquidity',      d: 'Institutional-grade perp and spot depth that BEX routes into for tight fills.' },
+  ];
+  return (
+    <section id="hyperliquid" className="relative border-b border-hairline bg-surface">
+      <div aria-hidden className="absolute -top-20 left-1/2 -translate-x-1/2 size-[28rem] bg-accent/10 blur-3xl rounded-full pointer-events-none" />
+      <div className="relative max-w-6xl mx-auto px-5 py-20 grid lg:grid-cols-[1fr_1.1fr] gap-12 items-center">
+        <Reveal>
+          <div>
+            <SectionHeader
+              align="left"
+              eyebrow="Primary exchange partner"
+              title={<>Execution powered by <span className="text-gradient">Hyperliquid</span>.</>}
+              description="Hyperliquid is BEX’s primary trading exchange. Every cycle’s orders are routed to Hyperliquid’s fully on-chain order book, and the live prices shown across BEX are sourced directly from it — so execution and reporting share a single source of truth."
+            />
+            <div className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-accent/30 bg-accent-soft px-4 py-2">
+              <span className="grid place-items-center size-6 rounded-md bg-accent text-accent-fg"><Zap className="size-3.5" /></span>
+              <span className="text-sm font-semibold text-fg">Hyperliquid</span>
+              <span className="text-xs text-fg-muted">· primary execution venue</span>
+            </div>
+          </div>
+        </Reveal>
+        <Reveal delay={2}>
+          <div className="grid gap-3">
+            {points.map((p) => (
+              <Card key={p.t} className="transition-colors hover:border-border-strong">
+                <CardBody className="p-4 flex items-start gap-3">
+                  <span className="grid place-items-center size-9 rounded-lg bg-accent-soft text-accent shrink-0">{p.icon}</span>
+                  <div>
+                    <h4 className="text-sm font-semibold text-fg">{p.t}</h4>
+                    <p className="text-[13px] text-fg-muted mt-1 leading-relaxed">{p.d}</p>
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 /* ────────────────────────────── Services ────────────────────────────── */
 
 type ServiceItem = {
@@ -605,6 +653,7 @@ function ExecutionShowcase() {
 
 function NetworkStatus() {
   const venues = [
+    { name: 'Hyperliquid', region: 'Primary · L1', latency: 18, series: [22,19,24,18,17,20,18] },
     { name: 'Uniswap v3',  region: 'Ethereum',  latency: 142, series: [120,135,160,142,128,150,142] },
     { name: 'Uniswap v3',  region: 'Arbitrum',  latency: 38,  series: [42,38,55,40,38,36,38] },
     { name: 'Curve',       region: 'Ethereum',  latency: 168, series: [150,165,180,170,168,175,168] },
@@ -642,7 +691,7 @@ function NetworkStatus() {
                 <NodeGraph />
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[10.5px] font-mono text-fg-subtle">
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="size-1.5 rounded-full bg-accent" /> 6 venues
+                    <span className="size-1.5 rounded-full bg-accent" /> 7 venues
                   </span>
                   <span className="inline-flex items-center gap-1.5">
                     <Cable className="size-3" /> mesh · optimistic
