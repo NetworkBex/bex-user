@@ -40,6 +40,21 @@ export function networkIcon(name?: string | null): string | null {
   return BY_NETWORK_NAME[name.toUpperCase()] ?? null;
 }
 
+const BY_VENUE: Record<string, string> = {
+  'HYPERLIQUID': '/venues/hyperliquid.png',
+  'UNISWAP V3':  '/venues/uniswap.png',
+  'UNISWAP':     '/venues/uniswap.png',
+  'CURVE':       '/venues/curve.png',
+  'RAYDIUM':     '/venues/raydium.png',
+  'PANCAKESWAP': '/venues/pancakeswap.png',
+};
+
+/** Icon for a trading venue / exchange (e.g. "Uniswap v3", "Hyperliquid"). */
+export function venueIcon(name?: string | null): string | null {
+  if (!name) return null;
+  return BY_VENUE[name.trim().toUpperCase()] ?? null;
+}
+
 /** Best icon for a currency given its symbol and (optionally) its chain. */
 export function currencyIcon(symbol?: string | null, chainId?: number | null): string | null {
   return tokenIcon(symbol) ?? chainIcon(chainId);

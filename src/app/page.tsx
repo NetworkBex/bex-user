@@ -16,6 +16,8 @@ import { Badge, PulseDot, Kbd } from '@/components/ui/Badge';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Input, Select, Field } from '@/components/ui/Input';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { TokenIcon } from '@/components/ui/TokenIcon';
+import { venueIcon } from '@/lib/tokenIcons';
 import { Reveal } from '@/components/landing/Reveal';
 import { Counter } from '@/components/landing/Counter';
 import { LiveTradesFeed } from '@/components/dashboard/LiveTradesFeed';
@@ -727,14 +729,14 @@ function NetworkStatus() {
                 <span className="font-mono">venues · live</span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-success font-medium">
-                <PulseDot tone="success" /> 6 / 6 healthy
+                <PulseDot tone="success" /> {venues.length} / {venues.length} healthy
               </div>
             </div>
             <div className="divide-y divide-hairline">
               {venues.map((v) => (
                 <div key={v.name + v.region} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 px-5 py-3 text-sm">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="size-1.5 rounded-full bg-success" />
+                    <TokenIcon symbol={v.name} src={venueIcon(v.name)} size={22} />
                     <span className="font-medium text-fg truncate">{v.name}</span>
                     <span className="text-fg-subtle text-xs">on {v.region}</span>
                   </div>
@@ -1422,7 +1424,7 @@ function MarketingFooter() {
               <PulseDot tone="success" /> all systems normal
             </span>
             <span className="hidden sm:inline-flex items-center gap-1.5 font-mono text-fg-subtle">
-              <Server className="size-3" /> 6 venues · 184 ms p50
+              <Server className="size-3" /> 7 venues · 184 ms p50
             </span>
           </div>
           <a href="#" className="inline-flex items-center gap-1 hover:text-fg-muted transition-colors">
