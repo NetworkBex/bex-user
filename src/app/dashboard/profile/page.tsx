@@ -11,6 +11,7 @@ import { Field, Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { PageSpinner } from '@/components/ui/Progress';
+import { NotificationSettings } from '@/components/dashboard/NotificationSettings';
 import { shortDate } from '@/lib/ui';
 
 export default function ProfilePage() {
@@ -68,7 +69,9 @@ export default function ProfilePage() {
                 <h2 className="text-lg font-semibold text-fg">{user.fullname || user.username}</h2>
                 <p className="text-sm text-fg-muted">{user.email}</p>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <Badge tone="success">Verified</Badge>
+                  {user.email_verified
+                    ? <Badge tone="success">Email verified</Badge>
+                    : <Badge tone="warning">Email unverified</Badge>}
                   <Badge tone="neutral">Member since {shortDate(user.date_created)}</Badge>
                 </div>
               </div>
@@ -110,6 +113,8 @@ export default function ProfilePage() {
                 </form>
               </CardBody>
             </Card>
+
+            <NotificationSettings />
           </div>
         </>
       )}

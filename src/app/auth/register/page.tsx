@@ -3,8 +3,9 @@
 import { Suspense, useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, User, Globe, ArrowRight, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
-import { authAPI, coreAPI, parseApiError } from '@/lib/api';
+import { Mail, Lock, User, Globe, ArrowRight, Eye, EyeOff, CheckCircle2, Ticket, MailCheck } from 'lucide-react';
+import { authAPI, parseApiError } from '@/lib/api';
+import { COUNTRIES } from '@/lib/countries';
 import { useToast } from '@/components/ToastProvider';
 import { AuthShell } from '@/components/layout/AuthShell';
 import { Button, Field, Input, Select, Badge } from '@/components/ui';
@@ -32,30 +33,40 @@ function RegisterPageInner() {
   const searchParams = useSearchParams();
   const { toast } = useToast() || { toast: (() => {}) as any };
 
-  const [countries, setCountries] = useState<{ sortname: string; name: string }[]>([]);
+  const refParam = searchParams.get('ref') || searchParams.get('referrer') || searchParams.get('code') || '';
   const [form, setForm] = useState({ username: '', email: '', password: '', cpassword: '', country: '' });
+  const [referralCode, setReferralCode] = useState(refParam);
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const ref = searchParams.get('ref') || '';
+  const [submitted, setSubmitted] = useState(false);
+  const [resending, setResending] = useState(false);
 
-  useEffect(() => {
-    coreAPI.countries().then(setCountries).catch(() => {});
-  }, []);
+  useEffect(() => { if (refParam) setReferralCode(refParam); }, [refParam]);
 
   const pwScore = useMemo(() => scorePassword(form.password), [form.password]);
   const pwMatches = form.password && form.password === form.cpassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!referralCode.trim()) { toast('A referral code is required to join', 'error'); return; }
     if (!pwMatches) { toast('Passwords do not match', 'error'); return; }
     setLoading(true);
     try {
-      const res = await authAPI.register({ ...form, referrer: ref || 'user' });
-      const { tokens } = res.data;
-      localStorage.setItem('access_token', tokens.access);
-      localStorage.setItem('refresh_token', tokens.refresh);
-      toast('Welcome to BEX');
-      router.push('/dashboard');
+      const res = await authAPI.register({ ...form, referrer: referralCode.trim() });
+      // New accounts must verify their email before they can sign in.
+      if (res.data?.email_verification_required) {
+        setSubmitted(true);
+        return;
+      }
+      // Backwards-compatible path (in case tokens are ever returned).
+      const tokens = res.data?.tokens;
+      if (tokens) {
+        localStorage.setItem('access_token', tokens.access);
+        localStorage.setItem('refresh_token', tokens.refresh);
+        router.push('/dashboard');
+      } else {
+        setSubmitted(true);
+      }
     } catch (err: any) {
       toast(parseApiError(err, 'Registration failed'), 'error');
     } finally {
@@ -63,19 +74,66 @@ function RegisterPageInner() {
     }
   };
 
+  const resend = async () => {
+    setResending(true);
+    try {
+      await authAPI.resendVerification(form.email);
+      toast('Verification email sent');
+    } catch (err: any) {
+      toast(parseApiError(err, 'Could not resend'), 'error');
+    } finally { setResending(false); }
+  };
+
+  if (submitted) {
+    return (
+      <AuthShell
+        title="Verify your email"
+        subtitle="One last step to activate your account."
+        footer={<>Already verified? <Link href="/auth/login" className="text-fg font-medium hover:text-accent transition-colors">Sign in</Link></>}
+      >
+        <div className="text-center space-y-5 py-2">
+          <div className="mx-auto grid place-items-center size-14 rounded-2xl bg-accent-soft text-accent">
+            <MailCheck className="size-7" />
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-fg text-[15px]">
+              We sent a verification link to <span className="font-semibold">{form.email}</span>.
+            </p>
+            <p className="text-fg-muted text-[13px]">
+              Click the link in that email to activate your account. It can take a minute to arrive — check your spam folder too.
+            </p>
+          </div>
+          <Button variant="secondary" className="w-full" loading={resending} onClick={resend}>
+            Resend verification email
+          </Button>
+        </div>
+      </AuthShell>
+    );
+  }
+
   return (
     <AuthShell
       title="Create your BEX account"
-      subtitle="The first cycle settles in 7 days. No credit card required."
+      subtitle="Join through your referral code. The first cycle settles in 7 days."
       footer={<>Already have one? <Link href="/auth/login" className="text-fg font-medium hover:text-accent transition-colors">Sign in</Link></>}
     >
-      {ref && (
+      {refParam && (
         <div className="mb-5 flex items-center justify-between gap-2 p-3 rounded-lg border border-accent/30 bg-accent-soft text-xs">
-          <span className="text-fg">Referred by <span className="font-mono font-medium">{ref}</span></span>
-          <Badge tone="accent">Bonus active</Badge>
+          <span className="text-fg">Referred by <span className="font-mono font-medium">{refParam}</span></span>
+          <Badge tone="accent">Verified invite</Badge>
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Referral code" required hint={!referralCode.trim() ? 'Required — you can only join via an invite' : undefined}>
+          <Input
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value)}
+            required
+            readOnly={!!refParam}
+            placeholder="e.g. alex_48213"
+            leadingIcon={<Ticket />}
+          />
+        </Field>
         <Field label="Display name" required>
           <Input
             value={form.username}
@@ -104,8 +162,8 @@ function RegisterPageInner() {
             </span>
             <Select className="pl-9" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} required>
               <option value="">Select country</option>
-              {countries.map((c) => (
-                <option key={c.sortname} value={c.name}>{c.name}</option>
+              {COUNTRIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
               ))}
             </Select>
           </div>

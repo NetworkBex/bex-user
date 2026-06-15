@@ -77,6 +77,17 @@ export const authAPI = {
   register: (data: { username: string; email: string; password: string; cpassword: string; country: string; referrer?: string }) =>
     api.post('/auth/register/', data),
   me: () => api.get('/auth/me/'),
+  verifyEmail: (token: string) => api.post('/auth/verify-email/', { token }),
+  resendVerification: (email: string) => api.post('/auth/resend-verification/', { email }),
+  forgotPassword: (email: string) => api.post('/auth/forgot-password/', { email }),
+  resetPassword: (token: string, password: string) => api.post('/auth/reset-password/', { token, password }),
+};
+
+export const notificationsAPI = {
+  getPreferences: () => api.get('/notifications/preferences/'),
+  updatePreferences: (data: any) => api.put('/notifications/preferences/', data),
+  testTelegram: (data: { telegram_chat_id?: string; telegram_bot_token?: string }) =>
+    api.post('/notifications/telegram/test/', data),
 };
 
 // Core

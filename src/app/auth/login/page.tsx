@@ -15,6 +15,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [needsVerify, setNeedsVerify] = useState(false);
+  const [resending, setResending] = useState(false);
   const { toast } = useToast() || { toast: (() => {}) as any };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,10 +31,25 @@ export default function LoginPage() {
       toast('Welcome back');
       router.push(is_admin ? '/admin' : '/dashboard');
     } catch (err: any) {
-      toast(parseApiError(err, 'Login failed'), 'error');
+      if (err?.response?.status === 403 && err?.response?.data?.email_verification_required) {
+        setNeedsVerify(true);
+        toast('Please verify your email to continue', 'error');
+      } else {
+        toast(parseApiError(err, 'Login failed'), 'error');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const resend = async () => {
+    setResending(true);
+    try {
+      await authAPI.resendVerification(email);
+      toast('Verification email sent');
+    } catch (err: any) {
+      toast(parseApiError(err, 'Could not resend'), 'error');
+    } finally { setResending(false); }
   };
 
   return (
@@ -41,6 +58,12 @@ export default function LoginPage() {
       subtitle="Continue to your verification-first execution dashboard."
       footer={<>Don't have an account? <Link href="/auth/register" className="text-fg font-medium hover:text-accent transition-colors">Create one</Link></>}
     >
+      {needsVerify && (
+        <div className="mb-5 p-3 rounded-lg border border-warning/30 bg-warning-soft text-xs space-y-2">
+          <p className="text-fg">Your email isn’t verified yet. Check your inbox for the activation link.</p>
+          <Button variant="secondary" size="sm" loading={resending} onClick={resend}>Resend verification email</Button>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="Email" required>
           <Input

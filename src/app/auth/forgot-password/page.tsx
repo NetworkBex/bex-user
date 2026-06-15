@@ -5,10 +5,21 @@ import Link from 'next/link';
 import { Mail, MailCheck, ArrowRight } from 'lucide-react';
 import { AuthShell } from '@/components/layout/AuthShell';
 import { Button, Field, Input } from '@/components/ui';
+import { authAPI } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await authAPI.forgotPassword(email);
+    } catch { /* generic response regardless */ }
+    finally { setLoading(false); setSent(true); }
+  };
 
   if (sent) {
     return (
@@ -30,7 +41,7 @@ export default function ForgotPasswordPage() {
       subtitle="Enter the email associated with your BEX account and we'll send you a reset link."
       footer={<><Link href="/auth/login" className="text-fg font-medium hover:text-accent transition-colors">← Back to sign in</Link></>}
     >
-      <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} className="space-y-4">
+      <form onSubmit={submit} className="space-y-4">
         <Field label="Email" required>
           <Input
             type="email"
@@ -42,7 +53,7 @@ export default function ForgotPasswordPage() {
             autoFocus
           />
         </Field>
-        <Button type="submit" className="w-full" size="lg" trailingIcon={<ArrowRight className="size-4" />}>
+        <Button type="submit" loading={loading} className="w-full" size="lg" trailingIcon={!loading ? <ArrowRight className="size-4" /> : undefined}>
           Send reset link
         </Button>
       </form>
