@@ -1,10 +1,6 @@
 import { cn } from '@/lib/ui';
 
-/** BEX brand lockup. The mark renders the brand image from /logo.png and
- *  gracefully falls back to the bundled /logo.svg recreation if no PNG has
- *  been uploaded yet (CSS only paints the second background layer when the
- *  first fails to load — no client JS required). Drop your artwork at
- *  frontend/public/logo.png to use the exact image everywhere. */
+/** BEX brand lockup. The mark renders the brand image from /logo.png. */
 export function Logo({ className, withWordmark = true }: {
   className?: string;
   withWordmark?: boolean;
@@ -29,7 +25,7 @@ export function Mark({ size = 24 }: { size?: number; accent?: boolean }) {
       style={{
         width: size,
         height: size,
-        backgroundImage: 'url(/logo.png), url(/logo.svg)',
+        backgroundImage: 'url(/logo.png)',
       }}
       role="img"
       aria-label="BEX Network"
