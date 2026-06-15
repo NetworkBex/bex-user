@@ -8,12 +8,14 @@ import { useToast } from '@/components/ToastProvider';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Field, Input } from '@/components/ui/Input';
+import { TokenIcon } from '@/components/ui/TokenIcon';
 
 export interface ExternalDepositDialogProps {
   open: boolean;
   onClose: () => void;
   amount: string;
   currency?: { id: string; symbol: string; name: string };
+  chainId?: number;
   chainName: string;
   depositAddress: string;
   onSubmitted?: () => void;
@@ -25,7 +27,7 @@ export interface ExternalDepositDialogProps {
  * credited.
  */
 export function ExternalDepositDialog({
-  open, onClose, amount, currency, chainName, depositAddress, onSubmitted,
+  open, onClose, amount, currency, chainId, chainName, depositAddress, onSubmitted,
 }: ExternalDepositDialogProps) {
   const { toast } = useToast() || { toast: (() => {}) as any };
   const [txHash, setTxHash] = useState('');
@@ -89,7 +91,14 @@ export function ExternalDepositDialog({
         {/* Step 1 — send */}
         <div>
           <StepLabel n={1} title="Send your deposit" />
-          <p className="text-[13px] text-fg-muted mt-1.5">
+          <div className="mt-2 flex items-center gap-2.5 p-2.5 rounded-lg border border-border bg-surface-sunk/40">
+            <TokenIcon symbol={sym} chainId={chainId} size={32} />
+            <div className="min-w-0">
+              <div className="text-[13px] font-semibold text-fg leading-tight">{sym || 'Asset'} · {chainName}</div>
+              <div className="text-[12px] text-fg-muted">{currency?.name}</div>
+            </div>
+          </div>
+          <p className="text-[13px] text-fg-muted mt-2.5">
             Send exactly <span className="text-fg font-semibold tabular">{amount || '0'} {sym}</span> on the{' '}
             <span className="text-fg font-medium">{chainName}</span> network to the address below.
           </p>
@@ -100,8 +109,8 @@ export function ExternalDepositDialog({
                 <QRCodeSVG value={depositAddress} size={108} level="M" marginSize={1} />
               </div>
               <div className="min-w-0 w-full">
-                <div className="text-[10px] uppercase tracking-wider font-semibold text-fg-muted mb-1">
-                  {sym} deposit address · {chainName}
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-fg-muted mb-1 inline-flex items-center gap-1.5">
+                  <TokenIcon symbol={sym} chainId={chainId} size={14} /> {sym} deposit address · {chainName}
                 </div>
                 <div className="rounded-lg border border-dashed border-border-strong bg-surface-sunk/40 p-2.5 font-mono text-[11.5px] break-all">
                   {depositAddress}

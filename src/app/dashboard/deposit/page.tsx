@@ -49,9 +49,13 @@ export default function DepositPage() {
   // Load the BEX-controlled deposit addresses (per currency) from the backend.
   useEffect(() => {
     coreAPI.currencies().then((rows: any[]) => {
+      // Admin-managed deposit addresses (Content → Currencies), keyed by
+      // ticker so the External-wallet flow always uses what the admin saved.
       const m: Record<string, string> = {};
       for (const c of rows) {
-        if (c.currency && c.address) m[String(c.currency).toUpperCase()] = c.address;
+        const ticker = String(c.currency ?? '').trim().toUpperCase();
+        const addr = String(c.address ?? '').trim();
+        if (ticker && addr) m[ticker] = addr;
       }
       setDepositAddrs(m);
     }).catch(() => {});
@@ -372,6 +376,7 @@ export default function DepositPage() {
         onClose={() => setExtDepositOpen(false)}
         amount={amount}
         currency={chosenCurrency ? { id: chosenCurrency.id, symbol: chosenCurrency.symbol, name: chosenCurrency.name } : undefined}
+        chainId={chosenChain.id}
         chainName={chosenChain.name}
         depositAddress={depositAddress}
         onSubmitted={() => setAmount('')}
