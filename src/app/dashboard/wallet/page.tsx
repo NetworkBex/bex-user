@@ -9,7 +9,8 @@ import { PageHeader } from '@/components/layout/AppShell';
 import { Card, CardBody, CardHeader, CardDivider } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Select } from '@/components/ui/Input';
+import { TokenIcon } from '@/components/ui/TokenIcon';
+import { IconSelect } from '@/components/ui/IconSelect';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ToastProvider';
 import { useWallet } from '@/components/wallet/WalletProvider';
@@ -84,7 +85,8 @@ export default function WalletPage() {
                     Balance · {chain.name}
                     {chain.testnet && <Badge tone="warning">testnet</Badge>}
                   </div>
-                  <div className="mt-1 flex items-baseline gap-2.5">
+                  <div className="mt-1 flex items-center gap-2.5">
+                    <TokenIcon chainId={chain.id} symbol={chain.symbol} size={36} />
                     <span className="text-5xl font-semibold tracking-tight tabular text-fg">
                       {balance != null ? Number(balance).toFixed(6) : '—'}
                     </span>
@@ -99,11 +101,16 @@ export default function WalletPage() {
                 </div>
                 <div className="sm:w-48">
                   <label className="text-[10px] uppercase tracking-wider text-fg-subtle font-semibold">Network</label>
-                  <Select value={chainId} onChange={(e) => setChainId(Number(e.target.value))} className="mt-1">
-                    {Object.values(CHAINS).map((c) => (
-                      <option key={c.id} value={c.id}>{c.name} {c.testnet ? '(testnet)' : ''}</option>
-                    ))}
-                  </Select>
+                  <IconSelect
+                    className="mt-1"
+                    value={String(chainId)}
+                    onChange={(v) => setChainId(Number(v))}
+                    options={Object.values(CHAINS).map((c) => ({
+                      value: String(c.id),
+                      label: c.name + (c.testnet ? ' (testnet)' : ''),
+                      icon: <TokenIcon chainId={c.id} symbol={c.symbol} size={20} />,
+                    }))}
+                  />
                 </div>
               </div>
               <CardDivider />

@@ -1,9 +1,10 @@
 'use client';
 
-import { Sparkles, Flame, Coins, Percent, ShieldCheck, ArrowDown } from 'lucide-react';
+import { Flame, Coins, Percent, ShieldCheck, ArrowDown } from 'lucide-react';
 import { PageHeader } from '@/components/layout/AppShell';
 import { Card, CardBody, CardHeader, CardDivider } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { TokenIcon } from '@/components/ui/TokenIcon';
 import { useAmbassador } from '@/components/ambassador/AmbassadorProvider';
 import { formatMoney } from '@/lib/ui';
 
@@ -27,9 +28,12 @@ export default function AmbassadorTokenPage() {
 
       {/* Your balance */}
       <Card className="mb-6">
-        <CardHeader title={`Your $${t} position`} icon={<Sparkles className="size-4" />} description="Allocated from rank bonuses, fast-start, and milestone gifts." />
+        <CardHeader title={`Your $${t} position`} icon={<TokenIcon symbol="BEX" size={18} />} description="Allocated from rank bonuses, fast-start, and milestone gifts." />
         <CardBody className="pt-1 grid sm:grid-cols-3 gap-4">
-          <Stat label="Total balance"     value={me?.tokenBalance != null ? `${me.tokenBalance.toLocaleString()} $${t}` : '—'} />
+          <div className="flex items-center gap-3">
+            <TokenIcon symbol="BEX" size={40} />
+            <Stat label="Total balance" value={me?.tokenBalance != null ? `${me.tokenBalance.toLocaleString()} $${t}` : '—'} />
+          </div>
           <Stat label="Pre-launch price"  value={`$${plan.founding.preLaunchTokenPrice.toFixed(4)}`} />
           <Stat label="TGE price"         value={`$${plan.founding.tgePrice.toFixed(4)}`} />
         </CardBody>

@@ -8,3 +8,5 @@ export { DataTable, TR, TH, TD, TableEmpty } from './DataTable';
 export { Avatar } from './Avatar';
 export { ThemeToggle, themeInitScript } from './ThemeToggle';
 export { Dialog } from './Dialog';
+export { TokenIcon } from './TokenIcon';
+export { IconSelect, type IconSelectOption } from './IconSelect';

@@ -8,6 +8,8 @@ import { PageHeader } from '@/components/layout/AppShell';
 import { Card, CardBody, CardHeader, CardDivider } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Field, Input, Select } from '@/components/ui/Input';
+import { TokenIcon } from '@/components/ui/TokenIcon';
+import { IconSelect } from '@/components/ui/IconSelect';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { CHAINS, currenciesForChain, currencyById } from '@/lib/wallet';
@@ -98,21 +100,28 @@ export default function WithdrawalPage() {
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <Field label="Network" required>
-                  <Select value={networkId} onChange={(e) => handleNetwork(Number(e.target.value))} required>
-                    {Object.values(CHAINS).map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}{c.testnet ? ' · testnet' : ''}
-                      </option>
-                    ))}
-                  </Select>
+                  <IconSelect
+                    value={String(networkId)}
+                    onChange={(v) => handleNetwork(Number(v))}
+                    options={Object.values(CHAINS).map((c) => ({
+                      value: String(c.id),
+                      label: c.name + (c.testnet ? ' · testnet' : ''),
+                      icon: <TokenIcon chainId={c.id} symbol={c.symbol} size={20} />,
+                    }))}
+                  />
                 </Field>
                 <Field label="Currency" required>
-                  <Select value={currencyId} onChange={(e) => setCurrencyId(e.target.value)} required>
-                    {currencies.length === 0 && <option value="">No assets on this network</option>}
-                    {currencies.map((c) => (
-                      <option key={c.id} value={c.id}>{c.symbol} · {c.name}</option>
-                    ))}
-                  </Select>
+                  <IconSelect
+                    value={currencyId}
+                    placeholder={currencies.length === 0 ? 'No assets on this network' : 'Select asset'}
+                    onChange={(v) => setCurrencyId(v)}
+                    options={currencies.map((c) => ({
+                      value: c.id,
+                      label: c.symbol,
+                      sublabel: c.name,
+                      icon: <TokenIcon symbol={c.symbol} chainId={c.chainId} size={20} />,
+                    }))}
+                  />
                 </Field>
               </div>
 
