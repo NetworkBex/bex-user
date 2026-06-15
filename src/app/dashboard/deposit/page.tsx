@@ -11,6 +11,7 @@ import { Field, Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { TokenIcon } from '@/components/ui/TokenIcon';
 import { IconSelect } from '@/components/ui/IconSelect';
+import { networkIcon } from '@/lib/tokenIcons';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { WalletDepositDialog } from '@/components/wallet/WalletDepositDialog';
@@ -40,26 +41,65 @@ export default function DepositPage() {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [extDepositOpen, setExtDepositOpen] = useState(false);
-  // Backend-managed deposit addresses keyed by asset symbol.
-  const [depositAddrs, setDepositAddrs] = useState<Record<string, string>>({});
+  // Admin-managed deposit addresses (Content → Currencies): one row per
+  // (asset, network). The External-wallet flow is driven entirely by these.
+  const [adminCurrencies, setAdminCurrencies] = useState<any[]>([]);
+  const [extAsset, setExtAsset] = useState('USDT');
+  const [extNetwork, setExtNetwork] = useState('');
 
   // Keep local network in sync if the user changes it in the wallet provider.
   useEffect(() => { setNetworkId(chainId); }, [chainId]);
 
-  // Load the BEX-controlled deposit addresses (per currency) from the backend.
   useEffect(() => {
     coreAPI.currencies().then((rows: any[]) => {
-      // Admin-managed deposit addresses (Content → Currencies), keyed by
-      // ticker so the External-wallet flow always uses what the admin saved.
-      const m: Record<string, string> = {};
-      for (const c of rows) {
-        const ticker = String(c.currency ?? '').trim().toUpperCase();
-        const addr = String(c.address ?? '').trim();
-        if (ticker && addr) m[ticker] = addr;
-      }
-      setDepositAddrs(m);
+      const list = (Array.isArray(rows) ? rows : []).filter(
+        (c) => String(c.currency ?? '').trim() && String(c.address ?? '').trim(),
+      );
+      setAdminCurrencies(list);
     }).catch(() => {});
   }, []);
+
+  // Distinct assets the admin configured (USDT preferred as the default).
+  const adminAssets = useMemo(() => {
+    const seen = new Set<string>(); const out: string[] = [];
+    for (const c of adminCurrencies) {
+      const t = String(c.currency).trim().toUpperCase();
+      if (t && !seen.has(t)) { seen.add(t); out.push(t); }
+    }
+    return out;
+  }, [adminCurrencies]);
+
+  // Networks available for the selected external asset.
+  const extNetworks = useMemo(
+    () => adminCurrencies
+      .filter((c) => String(c.currency).trim().toUpperCase() === extAsset.toUpperCase())
+      .map((c) => String(c.network || '').trim())
+      .filter(Boolean),
+    [adminCurrencies, extAsset],
+  );
+
+  const extRow = useMemo(
+    () => adminCurrencies.find(
+      (c) => String(c.currency).trim().toUpperCase() === extAsset.toUpperCase()
+        && String(c.network || '').trim() === extNetwork,
+    ),
+    [adminCurrencies, extAsset, extNetwork],
+  );
+  const extAddress = String(extRow?.address || '').trim();
+
+  // Default the external asset to USDT (or first available) once loaded.
+  useEffect(() => {
+    if (adminAssets.length === 0) return;
+    if (!adminAssets.includes(extAsset.toUpperCase())) {
+      setExtAsset(adminAssets.includes('USDT') ? 'USDT' : adminAssets[0]);
+    }
+  }, [adminAssets]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep the selected network valid for the chosen asset.
+  useEffect(() => {
+    if (extNetworks.length === 0) { setExtNetwork(''); return; }
+    if (!extNetworks.includes(extNetwork)) setExtNetwork(extNetworks[0]);
+  }, [extNetworks]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Currency list is fully derived from the chosen network — no backend needed.
   const currencies = useMemo(() => currenciesForChain(networkId), [networkId]);
@@ -76,7 +116,20 @@ export default function DepositPage() {
 
   const chosenCurrency = currencyById(currencyId);
   const chosenChain = CHAINS[networkId] ?? chain;
-  const depositAddress = chosenCurrency ? (depositAddrs[chosenCurrency.symbol.toUpperCase()] || '') : '';
+  const isExternal = method === 'wallet';
+
+  // Effective asset/network/address shown in the summary + address card. The
+  // external flow uses the admin (asset, network) selection; other methods use
+  // the EVM picker, resolving any matching admin address by ticker.
+  const effSymbol  = isExternal ? extAsset : (chosenCurrency?.symbol ?? '');
+  const effNetwork = isExternal ? extNetwork : chosenChain.name;
+  const effAddress = isExternal
+    ? extAddress
+    : String(
+        adminCurrencies.find(
+          (c) => String(c.currency).trim().toUpperCase() === (chosenCurrency?.symbol ?? '').toUpperCase(),
+        )?.address || '',
+      ).trim();
 
   const handleNetwork = (id: number) => {
     setNetworkId(id);
@@ -89,8 +142,13 @@ export default function DepositPage() {
   // instructions + tx-hash dialog; the rest go through the confirm step.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !chosenCurrency) return;
-    if (method === 'wallet') { setExtDepositOpen(true); return; }
+    if (!amount) return;
+    if (method === 'wallet') {
+      if (!extRow || !extAddress) { toast('No deposit address is configured for this asset/network yet.', 'error'); return; }
+      setExtDepositOpen(true);
+      return;
+    }
+    if (!chosenCurrency) return;
     setConfirmOpen(true);
   };
 
@@ -165,7 +223,7 @@ export default function DepositPage() {
           <CardDivider />
           <CardBody>
             <form onSubmit={handleSubmit} className="space-y-5">
-              <Field label="Amount" hint={chosenCurrency?.symbol ?? 'USD'} required>
+              <Field label="Amount" hint={effSymbol || 'USD'} required>
                 <Input
                   type="number"
                   step="0.000001"
@@ -190,32 +248,61 @@ export default function DepositPage() {
                 </div>
               </Field>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="Network" required>
-                  <IconSelect
-                    value={String(networkId)}
-                    onChange={(v) => handleNetwork(Number(v))}
-                    options={Object.values(CHAINS).map((c) => ({
-                      value: String(c.id),
-                      label: c.name + (c.testnet ? ' · testnet' : ''),
-                      icon: <TokenIcon chainId={c.id} symbol={c.symbol} size={20} />,
-                    }))}
-                  />
-                </Field>
-                <Field label="Currency" required>
-                  <IconSelect
-                    value={currencyId}
-                    placeholder={currencies.length === 0 ? 'No assets on this network' : 'Select asset'}
-                    onChange={(v) => setCurrencyId(v)}
-                    options={currencies.map((c) => ({
-                      value: c.id,
-                      label: c.symbol,
-                      sublabel: c.name,
-                      icon: <TokenIcon symbol={c.symbol} chainId={c.chainId} size={20} />,
-                    }))}
-                  />
-                </Field>
-              </div>
+              {isExternal ? (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Asset" required>
+                    <IconSelect
+                      value={extAsset}
+                      placeholder={adminAssets.length === 0 ? 'No assets configured' : 'Select asset'}
+                      onChange={(v) => setExtAsset(v)}
+                      options={adminAssets.map((t) => ({
+                        value: t,
+                        label: t,
+                        icon: <TokenIcon symbol={t} size={20} />,
+                      }))}
+                    />
+                  </Field>
+                  <Field label="Network" required>
+                    <IconSelect
+                      value={extNetwork}
+                      placeholder={extNetworks.length === 0 ? 'No networks for this asset' : 'Select network'}
+                      onChange={(v) => setExtNetwork(v)}
+                      options={extNetworks.map((n) => ({
+                        value: n,
+                        label: n,
+                        icon: <TokenIcon symbol={n} src={networkIcon(n)} size={20} />,
+                      }))}
+                    />
+                  </Field>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Network" required>
+                    <IconSelect
+                      value={String(networkId)}
+                      onChange={(v) => handleNetwork(Number(v))}
+                      options={Object.values(CHAINS).map((c) => ({
+                        value: String(c.id),
+                        label: c.name + (c.testnet ? ' · testnet' : ''),
+                        icon: <TokenIcon chainId={c.id} symbol={c.symbol} size={20} />,
+                      }))}
+                    />
+                  </Field>
+                  <Field label="Currency" required>
+                    <IconSelect
+                      value={currencyId}
+                      placeholder={currencies.length === 0 ? 'No assets on this network' : 'Select asset'}
+                      onChange={(v) => setCurrencyId(v)}
+                      options={currencies.map((c) => ({
+                        value: c.id,
+                        label: c.symbol,
+                        sublabel: c.name,
+                        icon: <TokenIcon symbol={c.symbol} chainId={c.chainId} size={20} />,
+                      }))}
+                    />
+                  </Field>
+                </div>
+              )}
 
               <div>
                 <div className="text-xs font-medium text-fg-muted mb-2">Method</div>
@@ -292,7 +379,7 @@ export default function DepositPage() {
                 className="w-full"
                 size="lg"
                 leadingIcon={!loading ? <ArrowDownToLine className="size-4" /> : undefined}
-                disabled={!chosenCurrency || (method === 'bex_wallet' && !hasWallet)}
+                disabled={isExternal ? (!extRow || !amount) : (!chosenCurrency || (method === 'bex_wallet' && !hasWallet))}
               >
                 {loading ? 'Processing…' :
                  method === 'bex_wallet'  ? 'Continue with BEX wallet' :
@@ -307,12 +394,12 @@ export default function DepositPage() {
           {/* Selection summary */}
           <Card variant="sunk">
             <CardBody className="p-4 space-y-2 text-[13px]">
-              <Row label="Network"   value={`${chosenChain.name}${chosenChain.testnet ? ' · testnet' : ''}`} />
-              <Row label="Asset"     value={chosenCurrency ? `${chosenCurrency.symbol} (${chosenCurrency.name})` : '—'} />
-              {chosenCurrency?.contract && (
+              <Row label="Network"   value={effNetwork || '—'} />
+              <Row label="Asset"     value={effSymbol || '—'} />
+              {!isExternal && chosenCurrency?.contract && (
                 <Row label="Contract" mono value={`${chosenCurrency.contract.slice(0, 10)}…${chosenCurrency.contract.slice(-4)}`} />
               )}
-              {chosenCurrency?.native && <Row label="Asset type" value="Native" />}
+              {!isExternal && chosenCurrency?.native && <Row label="Asset type" value="Native" />}
             </CardBody>
           </Card>
 
@@ -326,28 +413,32 @@ export default function DepositPage() {
           )}
 
           <Card>
-            <CardHeader title={`${chosenCurrency?.symbol ?? 'Deposit'} address`} icon={<Coins className="size-4" />} description={`BEX-controlled address on ${chosenChain.name}.`} />
+            <CardHeader
+              title={`${effSymbol || 'Deposit'} address`}
+              icon={<TokenIcon symbol={effSymbol} src={networkIcon(effNetwork)} size={18} />}
+              description={effNetwork ? `BEX-controlled address on ${effNetwork}.` : 'Select an asset and network.'}
+            />
             <CardBody className="pt-1 space-y-3">
-              {depositAddress ? (
+              {effAddress ? (
                 <>
                   <div className="p-3 rounded-lg border border-dashed border-border-strong bg-surface-sunk/40 font-mono text-xs break-all">
-                    {depositAddress}
+                    {effAddress}
                   </div>
                   <Button
                     variant="secondary"
                     size="sm"
                     leadingIcon={<Copy className="size-3.5" />}
-                    onClick={() => { navigator.clipboard.writeText(depositAddress); toast('Address copied'); }}
+                    onClick={() => { navigator.clipboard.writeText(effAddress); toast('Address copied'); }}
                   >
                     Copy address
                   </Button>
                   <p className="text-[12px] text-fg-muted">
-                    Make sure you're sending on the <span className="text-fg font-medium">{chosenChain.name}</span> network — funds sent on the wrong chain may be lost.
+                    Make sure you're sending on the <span className="text-fg font-medium">{effNetwork}</span> network — funds sent on the wrong chain may be lost.
                   </p>
                 </>
               ) : (
                 <p className="text-[12px] text-fg-muted">
-                  No deposit address is configured for {chosenCurrency?.symbol ?? 'this asset'} yet. Use <span className="text-fg font-medium">Instant deposit</span>, or contact support.
+                  No deposit address is configured for {effSymbol || 'this asset'}{effNetwork ? ` on ${effNetwork}` : ''} yet. Use <span className="text-fg font-medium">Instant deposit</span>, or contact support.
                 </p>
               )}
             </CardBody>
@@ -375,10 +466,9 @@ export default function DepositPage() {
         open={extDepositOpen}
         onClose={() => setExtDepositOpen(false)}
         amount={amount}
-        currency={chosenCurrency ? { id: chosenCurrency.id, symbol: chosenCurrency.symbol, name: chosenCurrency.name } : undefined}
-        chainId={chosenChain.id}
-        chainName={chosenChain.name}
-        depositAddress={depositAddress}
+        currency={extRow ? { id: String(extRow.id), symbol: extAsset, name: extAsset } : undefined}
+        chainName={extNetwork}
+        depositAddress={extAddress}
         onSubmitted={() => setAmount('')}
       />
 

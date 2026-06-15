@@ -28,6 +28,18 @@ export function chainIcon(chainId?: number | null): string | null {
   return BY_CHAIN[chainId] ?? null;
 }
 
+const BY_NETWORK_NAME: Record<string, string> = {
+  ETHEREUM: '/tokens/ethereum.png',
+  POLYGON:  '/tokens/polygon.png',
+  ARBITRUM: '/tokens/arbitrum.png',
+};
+
+/** Icon for an admin-saved network name (e.g. "Ethereum", "Tron"). */
+export function networkIcon(name?: string | null): string | null {
+  if (!name) return null;
+  return BY_NETWORK_NAME[name.toUpperCase()] ?? null;
+}
+
 /** Best icon for a currency given its symbol and (optionally) its chain. */
 export function currencyIcon(symbol?: string | null, chainId?: number | null): string | null {
   return tokenIcon(symbol) ?? chainIcon(chainId);
