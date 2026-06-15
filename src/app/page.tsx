@@ -244,13 +244,6 @@ function HeroBackdrop() {
       <div className="absolute top-1/3 -right-32 size-[420px] rounded-full bg-info/20 blur-3xl animate-orb [animation-delay:-6s]" />
       <div className="absolute bottom-[-160px] left-1/3 size-[520px] rounded-full bg-accent/10 blur-3xl animate-orb [animation-delay:-3s]" />
 
-      {/* Moving beam */}
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0 w-1/3
-                   bg-gradient-to-r from-transparent via-accent/20 to-transparent
-                   blur-2xl animate-beam"
-      />
-
       {/* Top hairline accent */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
     </div>
