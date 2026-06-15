@@ -214,6 +214,21 @@ function HeroBackdrop() {
       {/* Base canvas */}
       <div className="absolute inset-0 bg-canvas" />
 
+      {/* Looping trading backdrop video */}
+      <video
+        className="absolute inset-0 h-full w-full object-cover opacity-35 mask-radial-fade pointer-events-none"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+      >
+        <source src="https://res.cloudinary.com/dgzxh3ccq/video/upload/v1781522346/trading-backdrop_oitlqk.mp4" type="video/mp4" />
+      </video>
+
+      {/* Tint over the video so foreground copy stays readable in both themes */}
+      <div className="absolute inset-0 bg-canvas/55" />
+
       {/* Animated fine grid with major lines every 5 cells */}
       <div className="absolute inset-0 grid-bg-fine mask-radial-fade opacity-90" />
 
