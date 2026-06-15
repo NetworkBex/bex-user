@@ -359,10 +359,14 @@ function HyperliquidPartnership() {
               title={<>Execution powered by <span className="text-gradient">Hyperliquid</span>.</>}
               description="Hyperliquid is BEX’s primary trading exchange. Every cycle’s orders are routed to Hyperliquid’s fully on-chain order book, and the live prices shown across BEX are sourced directly from it — so execution and reporting share a single source of truth."
             />
-            <div className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-accent/30 bg-accent-soft px-4 py-2">
-              <span className="grid place-items-center size-6 rounded-md bg-accent text-accent-fg"><Zap className="size-3.5" /></span>
-              <span className="text-sm font-semibold text-fg">Hyperliquid</span>
-              <span className="text-xs text-fg-muted">· primary execution venue</span>
+            <div className="mt-6 flex items-center gap-3 flex-wrap">
+              <span className="inline-flex rounded-xl border border-hairline overflow-hidden shadow-[var(--shadow-sm)]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/hyperliquid.webp" alt="Hyperliquid" className="h-10 w-auto block" />
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-xs text-fg-muted">
+                <PulseDot tone="success" /> Primary execution venue
+              </span>
             </div>
           </div>
         </Reveal>
