@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/ToastProvider';
 import { themeInitScript } from '@/components/ui/ThemeToggle';
+import { LiveChat } from '@/components/widgets/LiveChat';
+import { LanguageTranslate } from '@/components/widgets/LanguageTranslate';
 
 export const metadata: Metadata = {
   title: 'BEX Network — Verified Web3 Execution',
@@ -20,6 +22,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="antialiased font-sans bg-canvas text-fg" suppressHydrationWarning>
         <ToastProvider>{children}</ToastProvider>
+        <LanguageTranslate />
+        <LiveChat />
       </body>
     </html>
   );

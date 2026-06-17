@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Search, Menu, X, LogOut, ChevronDown, BellDot, Command as CmdIcon,
-  ExternalLink, Wallet,
+  ExternalLink, Wallet, Send,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { Avatar } from '@/components/ui/Avatar';
@@ -224,8 +224,18 @@ export function AppShell({ groups, user, brandHref = '/dashboard', brandSuffix, 
 
         <footer className="px-4 lg:px-6 py-6 border-t border-hairline text-[12px] text-fg-muted flex flex-wrap items-center justify-between gap-2">
           <span>© {new Date().getFullYear()} BEX Network · Bayes-Euler Limited (BVI)</span>
-          <div className="flex items-center gap-1.5">
-            <PulseDot tone="success" /><span>All systems operational</span>
+          <div className="flex items-center gap-4">
+            <a
+              href="https://t.me/BEX_Network"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 hover:text-fg transition-colors"
+            >
+              <Send className="size-3.5 text-accent" /> Telegram channel
+            </a>
+            <span className="inline-flex items-center gap-1.5">
+              <PulseDot tone="success" /><span>All systems operational</span>
+            </span>
           </div>
         </footer>
       </div>

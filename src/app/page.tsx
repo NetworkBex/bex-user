@@ -1457,6 +1457,16 @@ function MarketingFooter() {
               <Link href="/auth/login">Sign in</Link>
             </Button>
           </div>
+          <a
+            href="https://t.me/BEX_Network"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-fg-muted hover:text-fg hover:border-border-strong transition-colors"
+          >
+            <Send className="size-4 text-accent" />
+            Join our Telegram channel
+            <ArrowUpRight className="size-3.5" />
+          </a>
         </div>
 
         {cols.map((c) => (
