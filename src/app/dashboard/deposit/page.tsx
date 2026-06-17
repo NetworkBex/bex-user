@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowDownToLine, Coins, CreditCard, Wallet, Copy, Info, Sparkles } from 'lucide-react';
-import { transactionAPI, paymentAPI, coreAPI } from '@/lib/api';
+import { paymentAPI, coreAPI } from '@/lib/api';
 import { useToast } from '@/components/ToastProvider';
 import { PageHeader } from '@/components/layout/AppShell';
 import { Card, CardBody, CardHeader, CardDivider } from '@/components/ui/Card';
@@ -29,6 +29,32 @@ const METHODS = [
 
 const QUICK = [100, 500, 1_000, 5_000, 10_000];
 
+// Coins offered for instant (NOWPayments) deposits — popular first. The empty
+// code = "let me choose at checkout" (the hosted invoice shows all 40+ coins).
+const PAY_COINS: { code: string; symbol: string; name: string }[] = [
+  { code: 'btc',        symbol: 'BTC',  name: 'Bitcoin' },
+  { code: 'eth',        symbol: 'ETH',  name: 'Ethereum' },
+  { code: 'usdttrc20',  symbol: 'USDT', name: 'Tether · TRON' },
+  { code: 'usdterc20',  symbol: 'USDT', name: 'Tether · Ethereum' },
+  { code: 'usdcerc20',  symbol: 'USDC', name: 'USD Coin' },
+  { code: 'bnbbsc',     symbol: 'BNB',  name: 'BNB' },
+  { code: 'sol',        symbol: 'SOL',  name: 'Solana' },
+  { code: 'xrp',        symbol: 'XRP',  name: 'XRP' },
+  { code: 'trx',        symbol: 'TRX',  name: 'TRON' },
+  { code: 'doge',       symbol: 'DOGE', name: 'Dogecoin' },
+  { code: 'ltc',        symbol: 'LTC',  name: 'Litecoin' },
+  { code: 'ada',        symbol: 'ADA',  name: 'Cardano' },
+  { code: 'matic',      symbol: 'POL',  name: 'Polygon' },
+  { code: 'avaxc',      symbol: 'AVAX', name: 'Avalanche' },
+  { code: 'ton',        symbol: 'TON',  name: 'Toncoin' },
+  { code: 'dot',        symbol: 'DOT',  name: 'Polkadot' },
+  { code: 'bch',        symbol: 'BCH',  name: 'Bitcoin Cash' },
+  { code: 'xlm',        symbol: 'XLM',  name: 'Stellar' },
+  { code: 'link',       symbol: 'LINK', name: 'Chainlink' },
+  { code: 'shib',       symbol: 'SHIB', name: 'Shiba Inu' },
+  { code: '',           symbol: '',     name: 'Other — choose at checkout (40+ coins)' },
+];
+
 export default function DepositPage() {
   const { toast } = useToast() || { toast: (() => {}) as any };
   const { hasWallet, chain, chainId, setChainId, balance } = useWallet();
@@ -37,6 +63,7 @@ export default function DepositPage() {
   const [networkId, setNetworkId] = useState<number>(chainId);
   const [currencyId, setCurrencyId] = useState<string>('');
   const [method, setMethod] = useState('nowpayments');
+  const [payCoin, setPayCoin] = useState('btc');
   const [loading, setLoading] = useState(false);
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -117,6 +144,8 @@ export default function DepositPage() {
   const chosenCurrency = currencyById(currencyId);
   const chosenChain = CHAINS[networkId] ?? chain;
   const isExternal = method === 'wallet';
+  const isNowpay = method === 'nowpayments';
+  const chosenPayCoin = PAY_COINS.find((c) => c.code === payCoin) ?? PAY_COINS[0];
 
   // Effective asset/network/address shown in the summary + address card. The
   // external flow uses the admin (asset, network) selection; other methods use
@@ -148,16 +177,19 @@ export default function DepositPage() {
       setExtDepositOpen(true);
       return;
     }
-    if (!chosenCurrency) return;
+    if (method === 'bex_wallet' && !chosenCurrency) return;
     setConfirmOpen(true);
   };
 
   // Step 2 — route to the chosen method, only after explicit confirmation.
   const executeDeposit = async () => {
-    if (!amount || !chosenCurrency) return;
+    if (!amount) return;
 
     // BEX wallet → in-browser signing flow
-    if (method === 'bex_wallet') { setConfirmOpen(false); setWalletDialogOpen(true); return; }
+    if (method === 'bex_wallet') {
+      if (!chosenCurrency) return;
+      setConfirmOpen(false); setWalletDialogOpen(true); return;
+    }
 
     // NOWPayments → backend creates a hosted invoice, we redirect
     if (method === 'nowpayments') {
@@ -166,9 +198,9 @@ export default function DepositPage() {
         const res = await paymentAPI.createInvoice({
           amount,
           currency: 'usd',
-          // If the user picked a stable, ask NOWPayments to charge in it.
-          // Otherwise leave blank to let the hosted invoice show all coins.
-          pay_currency: chosenCurrency.symbol.toLowerCase(),
+          // Pre-select the coin the user picked. Empty = let the hosted
+          // invoice show all 40+ coins so they can choose at checkout.
+          ...(payCoin ? { pay_currency: payCoin } : {}),
         });
         const url = res.data?.invoice_url;
         if (!url) {
@@ -184,23 +216,8 @@ export default function DepositPage() {
         return;
       } finally { setLoading(false); }
     }
-
-    // External wallet → request-only flow (admin approves later)
-    setLoading(true);
-    try {
-      await transactionAPI.deposit({
-        amount,
-        currency: chosenCurrency.id,
-        currency_symbol: chosenCurrency.symbol,
-        chain_id: chosenChain.id,
-        method,
-      });
-      toast('Deposit request submitted');
-      setAmount('');
-      setConfirmOpen(false);
-    } catch (err: any) {
-      toast(err?.response?.data?.error || 'Deposit failed', 'error');
-    } finally { setLoading(false); }
+    // External wallet is handled entirely by the ExternalDepositDialog (opened
+    // from handleSubmit), so there's nothing more to do here.
   };
 
   const methodMeta = METHODS.find((m) => m.id === method);
@@ -223,7 +240,7 @@ export default function DepositPage() {
           <CardDivider />
           <CardBody>
             <form onSubmit={handleSubmit} className="space-y-5">
-              <Field label="Amount" hint={effSymbol || 'USD'} required>
+              <Field label="Amount" hint={isNowpay ? 'USD' : (effSymbol || 'USD')} required>
                 <Input
                   type="number"
                   step="0.000001"
@@ -232,7 +249,7 @@ export default function DepositPage() {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   required
-                  leadingIcon={<span className="text-fg-muted text-sm font-medium">{chosenCurrency?.native ? chosenCurrency.symbol : '$'}</span>}
+                  leadingIcon={<span className="text-fg-muted text-sm font-medium">{!isNowpay && chosenCurrency?.native ? chosenCurrency.symbol : '$'}</span>}
                 />
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {QUICK.map((v) => (
@@ -248,7 +265,22 @@ export default function DepositPage() {
                 </div>
               </Field>
 
-              {isExternal ? (
+              {isNowpay ? (
+                <Field label="Pay with" required hint="Popular coins first · 40+ supported">
+                  <IconSelect
+                    value={payCoin}
+                    onChange={(v) => setPayCoin(v)}
+                    options={PAY_COINS.map((c) => ({
+                      value: c.code,
+                      label: c.symbol || 'Other',
+                      sublabel: c.name,
+                      icon: c.symbol
+                        ? <TokenIcon symbol={c.symbol} size={20} />
+                        : <CreditCard className="size-4 text-fg-muted" />,
+                    }))}
+                  />
+                </Field>
+              ) : isExternal ? (
                 <div className="grid sm:grid-cols-2 gap-4">
                   <Field label="Asset" required>
                     <IconSelect
@@ -379,7 +411,11 @@ export default function DepositPage() {
                 className="w-full"
                 size="lg"
                 leadingIcon={!loading ? <ArrowDownToLine className="size-4" /> : undefined}
-                disabled={isExternal ? (!extRow || !amount) : (!chosenCurrency || (method === 'bex_wallet' && !hasWallet))}
+                disabled={
+                  !amount ||
+                  (isExternal && !extRow) ||
+                  (method === 'bex_wallet' && (!chosenCurrency || !hasWallet))
+                }
               >
                 {loading ? 'Processing…' :
                  method === 'bex_wallet'  ? 'Continue with BEX wallet' :
@@ -394,12 +430,22 @@ export default function DepositPage() {
           {/* Selection summary */}
           <Card variant="sunk">
             <CardBody className="p-4 space-y-2 text-[13px]">
-              <Row label="Network"   value={effNetwork || '—'} />
-              <Row label="Asset"     value={effSymbol || '—'} />
-              {!isExternal && chosenCurrency?.contract && (
-                <Row label="Contract" mono value={`${chosenCurrency.contract.slice(0, 10)}…${chosenCurrency.contract.slice(-4)}`} />
+              {isNowpay ? (
+                <>
+                  <Row label="Method"   value="Instant deposit" />
+                  <Row label="Pay with" value={chosenPayCoin.code ? `${chosenPayCoin.symbol} · ${chosenPayCoin.name}` : 'Choose at checkout'} />
+                  <Row label="Priced in" value="USD" />
+                </>
+              ) : (
+                <>
+                  <Row label="Network"   value={effNetwork || '—'} />
+                  <Row label="Asset"     value={effSymbol || '—'} />
+                  {!isExternal && chosenCurrency?.contract && (
+                    <Row label="Contract" mono value={`${chosenCurrency.contract.slice(0, 10)}…${chosenCurrency.contract.slice(-4)}`} />
+                  )}
+                  {!isExternal && chosenCurrency?.native && <Row label="Asset type" value="Native" />}
+                </>
               )}
-              {!isExternal && chosenCurrency?.native && <Row label="Asset type" value="Native" />}
             </CardBody>
           </Card>
 
@@ -412,6 +458,16 @@ export default function DepositPage() {
             </Card>
           )}
 
+          {isNowpay && (
+            <Card>
+              <CardHeader title="Instant checkout" icon={<CreditCard className="size-4" />} description="You'll be taken to our secure checkout to pay." />
+              <CardBody className="pt-1 text-xs text-fg-muted">
+                Pay with {chosenPayCoin.code ? <span className="text-fg font-medium">{chosenPayCoin.symbol}</span> : 'any of 40+ coins'} or card. Your balance is credited automatically once the network confirms your payment.
+              </CardBody>
+            </Card>
+          )}
+
+          {!isNowpay && (
           <Card>
             <CardHeader
               title={`${effSymbol || 'Deposit'} address`}
@@ -443,6 +499,7 @@ export default function DepositPage() {
               )}
             </CardBody>
           </Card>
+          )}
 
           <Card variant="sunk">
             <CardBody className="p-4 flex gap-3">
