@@ -524,25 +524,22 @@ input, select, textarea, button { font: inherit; }
   .reveal { opacity: 1; transform: none; }
 }
 
-/* ─── Google Translate widget — strip Google's banner, keep just the picker ── */
+/* ─── Google Translate — fully hidden; we drive it from our own picker ────── */
+/* The Google runtime element is kept in the DOM (so the cookie is applied) but
+   pushed off-screen. No Google banner, logo, or "powered by" ever shows. */
+.gt-hidden {
+  position: fixed !important;
+  left: -10000px !important;
+  top: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
 .goog-te-banner-frame.skiptranslate,
-.goog-te-gadget-icon { display: none !important; }
-body { top: 0 !important; }
-.gt-floating .goog-te-gadget {
-  color: transparent;
-  font-size: 0 !important;
-}
-.gt-floating .goog-te-gadget .goog-te-combo {
-  margin: 0;
-  padding: 4px 8px;
-  font-size: 12.5px;
-  color: var(--fg);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  outline: none;
-  cursor: pointer;
-}
+.goog-te-banner-frame,
+.goog-te-gadget-icon,
+#goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+body { top: 0 !important; position: static !important; }
 /* Google injects a tooltip iframe + highlights translated text — calm them */
 .goog-tooltip, .goog-tooltip * { display: none !important; }
 .goog-text-highlight { background: none !important; box-shadow: none !important; }

@@ -18,6 +18,7 @@ import { Input, Select, Field } from '@/components/ui/Input';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { TokenIcon } from '@/components/ui/TokenIcon';
 import { venueIcon } from '@/lib/tokenIcons';
+import { LanguagePicker } from '@/components/widgets/LanguagePicker';
 import { Reveal } from '@/components/landing/Reveal';
 import { Counter } from '@/components/landing/Counter';
 import { LiveTradesFeed } from '@/components/dashboard/LiveTradesFeed';
@@ -65,7 +66,10 @@ function MarketingNav() {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md bg-canvas/70 border-b border-hairline">
       <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
-        <Link href="/"><Logo /></Link>
+        <div className="flex items-center gap-2.5">
+          <Link href="/"><Logo /></Link>
+          <LanguagePicker align="left" />
+        </div>
         <nav className="hidden md:flex items-center gap-7 text-sm text-fg-muted">
           <a href="#services"     className="hover:text-fg transition-colors">Services</a>
           <a href="#showcase"     className="hover:text-fg transition-colors">How it works</a>

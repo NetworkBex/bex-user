@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Kbd, PulseDot } from '@/components/ui/Badge';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { LanguagePicker } from '@/components/widgets/LanguagePicker';
 import { cn, formatMoney, initials } from '@/lib/ui';
 
 export interface NavGroup {
@@ -147,6 +148,10 @@ export function AppShell({ groups, user, brandHref = '/dashboard', brandSuffix, 
         </nav>
 
         <div className="p-3 border-t border-hairline space-y-2">
+          <div className="px-1">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-subtle mb-1.5">Language</div>
+            <LanguagePicker align="left" className="w-full [&>button]:w-full [&>button]:justify-start" />
+          </div>
           {user && (
             <div className="flex items-center gap-2.5 p-2 rounded-md hover:bg-surface-sunk/60 transition-colors">
               <Avatar name={user.username || user.email} size={32} />
@@ -216,6 +221,7 @@ export function AppShell({ groups, user, brandHref = '/dashboard', brandSuffix, 
               <BellDot className="size-4" />
               <span className="absolute top-2 right-2 size-1.5 bg-accent rounded-full" />
             </button>
+            <LanguagePicker compact />
             <ThemeToggle />
           </div>
         </header>
