@@ -16,6 +16,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { WalletDepositDialog } from '@/components/wallet/WalletDepositDialog';
 import { ExternalDepositDialog } from '@/components/wallet/ExternalDepositDialog';
+import { UploadProofDialog } from '@/components/wallet/UploadProofDialog';
 import { CHAINS, currenciesForChain, currencyById } from '@/lib/wallet';
 import { formatMoney } from '@/lib/ui';
 
@@ -68,6 +69,14 @@ export default function DepositPage() {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [extDepositOpen, setExtDepositOpen] = useState(false);
+  const [proofOpen, setProofOpen] = useState(false);
+
+  // Open the proof modal when arriving from the "Upload payment proof" email.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('proof') === '1') {
+      setProofOpen(true);
+    }
+  }, []);
   // Admin-managed deposit addresses (Content → Currencies): one row per
   // (asset, network). The External-wallet flow is driven entirely by these.
   const [adminCurrencies, setAdminCurrencies] = useState<any[]>([]);
@@ -510,6 +519,20 @@ export default function DepositPage() {
               </div>
             </CardBody>
           </Card>
+
+          {/* Already paid → upload receipt */}
+          <Card>
+            <CardBody className="p-4 flex items-center gap-3">
+              <span className="grid place-items-center size-10 rounded-lg bg-accent-soft text-accent shrink-0">
+                <Coins className="size-4" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13.5px] font-semibold text-fg">Already paid?</p>
+                <p className="text-[12px] text-fg-muted">Upload your receipt so we can verify it faster.</p>
+              </div>
+              <Button variant="secondary" size="sm" onClick={() => setProofOpen(true)}>Upload proof</Button>
+            </CardBody>
+          </Card>
         </div>
       </div>
 
@@ -526,8 +549,10 @@ export default function DepositPage() {
         currency={extRow ? { id: String(extRow.id), symbol: extAsset, name: extAsset } : undefined}
         chainName={extNetwork}
         depositAddress={extAddress}
-        onSubmitted={() => setAmount('')}
+        onSubmitted={() => { setAmount(''); setProofOpen(true); }}
       />
+
+      <UploadProofDialog open={proofOpen} onClose={() => setProofOpen(false)} />
 
       <ConfirmDialog
         open={confirmOpen}
