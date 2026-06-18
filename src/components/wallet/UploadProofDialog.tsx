@@ -58,7 +58,8 @@ export function UploadProofDialog({ open, onClose, onUploaded }: {
 
   const pickFile = (f: File | null) => {
     if (!f) { setFile(null); return; }
-    if (f.size > MAX_MB * 1024 * 1024) { toast(`File must be under ${MAX_MB}MB`, 'error'); return; }
+    if (!f.type.startsWith('image/')) { toast('Please upload an image — a screenshot or photo of your payment', 'error'); return; }
+    if (f.size > MAX_MB * 1024 * 1024) { toast(`Image must be under ${MAX_MB}MB`, 'error'); return; }
     setFile(f);
   };
 
@@ -134,11 +135,11 @@ export function UploadProofDialog({ open, onClose, onUploaded }: {
           )}
         </Field>
 
-        <Field label="Receipt / proof" hint="Image or PDF, up to 8MB" required>
+        <Field label="Receipt / proof" hint="Image (screenshot or photo), up to 8MB" required>
           <input
             ref={inputRef}
             type="file"
-            accept="image/*,application/pdf"
+            accept="image/*"
             className="hidden"
             onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
           />
@@ -157,8 +158,8 @@ export function UploadProofDialog({ open, onClose, onUploaded }: {
               className="w-full flex flex-col items-center justify-center gap-1.5 p-5 rounded-lg border border-dashed border-border-strong bg-surface-sunk/30 text-fg-muted hover:text-fg hover:border-accent transition-colors"
             >
               <UploadCloud className="size-6" />
-              <span className="text-[13px] font-medium">Click to choose a file</span>
-              <span className="text-[11.5px] text-fg-subtle">Screenshot, photo or PDF of your payment</span>
+              <span className="text-[13px] font-medium">Click to choose an image</span>
+              <span className="text-[11.5px] text-fg-subtle">Screenshot or photo of your payment</span>
             </button>
           )}
         </Field>
