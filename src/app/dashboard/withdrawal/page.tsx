@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowUpFromLine, Wallet, ShieldAlert } from 'lucide-react';
-import { transactionAPI, coreAPI, authAPI } from '@/lib/api';
+import { transactionAPI, authAPI } from '@/lib/api';
 import { useToast } from '@/components/ToastProvider';
 import { PageHeader } from '@/components/layout/AppShell';
 import { Card, CardBody, CardHeader, CardDivider } from '@/components/ui/Card';
@@ -11,6 +11,7 @@ import { Field, Input, Select } from '@/components/ui/Input';
 import { TokenIcon } from '@/components/ui/TokenIcon';
 import { IconSelect } from '@/components/ui/IconSelect';
 import { networkIcon } from '@/lib/tokenIcons';
+import { WITHDRAW_ASSETS } from '@/lib/withdrawAssets';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { formatMoney } from '@/lib/ui';
 
@@ -27,40 +28,22 @@ export default function WithdrawalPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const [balance, setBalance] = useState(0);
-  const [adminCurrencies, setAdminCurrencies] = useState<any[]>([]);
   const [cfg, setCfg] = useState<{ enabled: boolean; minUsd: number; maxUsd: number; feePercent: number; feeFlatUsd: number }>({
     enabled: true, minUsd: 0, maxUsd: 0, feePercent: 0, feeFlatUsd: 0,
   });
 
   useEffect(() => {
     authAPI.me().then((r) => setBalance(Number(r.data?.customer?.acc_balance ?? 0))).catch(() => {});
-    coreAPI.currencies().then((rows: any[]) => {
-      setAdminCurrencies((Array.isArray(rows) ? rows : []).filter((c) => String(c.currency ?? '').trim()));
-    }).catch(() => {});
     transactionAPI.withdrawConfig().then((r) => setCfg(r.data)).catch(() => {});
   }, []);
 
-  // Assets/networks come from what the admin supports (Content → Currencies).
-  const assets = useMemo(() => {
-    const seen = new Set<string>(); const out: string[] = [];
-    for (const c of adminCurrencies) {
-      const t = String(c.currency).trim().toUpperCase();
-      if (t && !seen.has(t)) { seen.add(t); out.push(t); }
-    }
-    return out;
-  }, [adminCurrencies]);
-
+  const assets = WITHDRAW_ASSETS;
   const networks = useMemo(
-    () => adminCurrencies.filter((c) => String(c.currency).trim().toUpperCase() === asset.toUpperCase())
-      .map((c) => String(c.network || '').trim()).filter(Boolean),
-    [adminCurrencies, asset],
+    () => WITHDRAW_ASSETS.find((a) => a.symbol === asset)?.networks ?? [],
+    [asset],
   );
 
-  useEffect(() => {
-    if (assets.length === 0) return;
-    if (!assets.includes(asset.toUpperCase())) setAsset(assets.includes('USDT') ? 'USDT' : assets[0]);
-  }, [assets]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  // Keep the selected network valid for the chosen asset.
   useEffect(() => {
     if (networks.length === 0) { setNetwork(''); return; }
     if (!networks.includes(network)) setNetwork(networks[0]);
@@ -144,9 +127,9 @@ export default function WithdrawalPage() {
                 <Field label="Asset" required>
                   <IconSelect
                     value={asset}
-                    placeholder={assets.length === 0 ? 'No assets configured' : 'Select asset'}
+                    placeholder="Select asset"
                     onChange={setAsset}
-                    options={assets.map((t) => ({ value: t, label: t, icon: <TokenIcon symbol={t} size={20} /> }))}
+                    options={assets.map((a) => ({ value: a.symbol, label: a.symbol, sublabel: a.name, icon: <TokenIcon symbol={a.symbol} size={20} /> }))}
                   />
                 </Field>
                 <Field label="Network" required>
