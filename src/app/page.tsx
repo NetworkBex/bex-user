@@ -171,32 +171,32 @@ function Hero() {
       {/* Layered background: animated fine grid + perspective floor + ambient orbs + beam */}
       <HeroBackdrop />
 
-      <div className="relative max-w-6xl mx-auto px-5 py-20 md:py-28 grid lg:grid-cols-[1.05fr_1fr] gap-12 items-center">
+      <div className="relative max-w-6xl mx-auto px-5 py-14 md:py-28 grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-12 items-center">
         <div className="animate-rise-in">
           <Badge tone="accent" className="mb-5">
             <Sparkles className="size-3" />
             Verification-first infrastructure · live on mainnet
           </Badge>
-          <h1 className="text-4xl md:text-6xl font-semibold tracking-tight text-fg leading-[1.05]">
-            Trading operations <br />
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-fg leading-[1.08]">
+            Trading operations{' '}
             <span className="text-gradient">verified on-chain.</span>
           </h1>
-          <p className="mt-5 text-base md:text-lg text-fg-muted max-w-xl leading-relaxed">
+          <p className="mt-4 sm:mt-5 text-[15px] sm:text-base md:text-lg text-fg-muted max-w-xl leading-relaxed">
             BEX Network is the verification-first Web3 execution platform.
             Every cycle is run by AI, signed by the protocol, and receipted to
             a public blockchain — so you can audit what actually happened.
           </p>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Link href="/auth/register">
-              <Button size="lg" trailingIcon={<ArrowRight className="size-4" />}>
+          <div className="mt-6 sm:mt-7 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+            <Link href="/auth/register" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto" trailingIcon={<ArrowRight className="size-4" />}>
                 Create your account
               </Button>
             </Link>
-            <a href="#showcase">
-              <Button size="lg" variant="secondary">See it run</Button>
+            <a href="#showcase" className="w-full sm:w-auto">
+              <Button size="lg" variant="secondary" className="w-full sm:w-auto">See it run</Button>
             </a>
           </div>
-          <div className="mt-8 flex items-center gap-5 text-xs text-fg-subtle">
+          <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-fg-subtle">
             <span className="flex items-center gap-1.5"><CheckCircle2 className="size-3.5 text-accent" /> Self-custody</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="size-3.5 text-accent" /> Public receipts</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="size-3.5 text-accent" /> AI-driven cycles</span>

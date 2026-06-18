@@ -10,7 +10,7 @@ export function Logo({ className, withWordmark = true }: {
     <span className={cn('inline-flex items-center gap-2 font-semibold tracking-tight', className)}>
       <Mark />
       {withWordmark && (
-        <span className="text-[15px] leading-none">
+        <span className="text-[15px] leading-none hidden sm:inline">
           BEX<span className="text-fg-muted">·Network</span>
         </span>
       )}

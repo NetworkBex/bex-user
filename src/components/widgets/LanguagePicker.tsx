@@ -95,7 +95,7 @@ export function LanguagePicker({ className, align = 'right', compact = false }: 
       {open && (
         <ul
           className={cn(
-            'absolute z-[1000] mt-1.5 w-52 max-h-80 overflow-auto rounded-lg border border-border bg-surface shadow-[var(--shadow-pop)] p-1',
+            'absolute z-[1000] mt-1.5 w-56 max-w-[calc(100vw-1.5rem)] max-h-[min(20rem,60vh)] overflow-auto rounded-lg border border-border bg-surface shadow-[var(--shadow-pop)] p-1',
             align === 'right' ? 'right-0' : 'left-0',
           )}
         >
@@ -105,8 +105,8 @@ export function LanguagePicker({ className, align = 'right', compact = false }: 
                 type="button"
                 onClick={() => applyLang(l.code)}
                 className={cn(
-                  'w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-left text-[13px] transition-colors',
-                  l.code === lang ? 'bg-accent-soft text-fg' : 'text-fg hover:bg-surface-sunk',
+                  'w-full flex items-center gap-2 px-2.5 py-2 rounded-md text-left text-[13px] transition-colors',
+                  l.code === lang ? 'bg-accent-soft text-fg' : 'text-fg hover:bg-surface-sunk active:bg-surface-sunk',
                 )}
               >
                 <span className="flex-1 truncate">{l.label}</span>
