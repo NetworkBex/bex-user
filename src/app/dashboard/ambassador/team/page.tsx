@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/Progress';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination } from '@/components/ui/Pagination';
 import { affiliateAPI, userAPI } from '@/lib/api';
+import { DownlineTree } from '@/components/ambassador/DownlineTree';
 import { useAmbassador } from '@/components/ambassador/AmbassadorProvider';
 import { levelUnlocked, rankByKey, type LevelStanding } from '@/lib/affiliate';
 import { usePagination } from '@/hooks/usePagination';
@@ -40,6 +41,9 @@ export default function AmbassadorTeamPage() {
         title="Team"
         description="Your downline by level. Compression keeps your income flowing past inactive intermediaries."
       />
+
+      {/* Full downline pyramid — everyone under you, all levels */}
+      <DownlineTree />
 
       {/* Unilevel snapshot */}
       <Card className="mb-6">

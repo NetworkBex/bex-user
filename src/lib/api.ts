@@ -201,6 +201,8 @@ export const affiliateAPI = {
     api.get('/affiliate/commissions/', { params }),
   /** Downline grouped by level — active investor count, volume, share. */
   team: () => api.get('/affiliate/team/'),
+  /** Full downline as a nested tree (the whole pyramid under the user). */
+  downline: () => api.get('/affiliate/downline/'),
   /** Leadership Revenue Pool snapshot for the current month. */
   lrp: () => api.get('/affiliate/lrp/'),
   /** Fast-Start Bonus state during the first 60 days. */
