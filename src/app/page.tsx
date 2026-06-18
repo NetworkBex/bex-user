@@ -448,7 +448,7 @@ function Services() {
   return (
     <section id="services" className="relative border-b border-hairline bg-surface-sunk/30">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
-      <div className="max-w-6xl mx-auto px-5 py-24">
+      <div className="max-w-6xl mx-auto px-5 py-16 md:py-24">
         <SectionHeader
           eyebrow="What we do"
           title={<>Infrastructure built around <span className="text-gradient">proof</span>, not promises.</>}
@@ -605,7 +605,7 @@ function ExecutionShowcase() {
   ];
   return (
     <section id="showcase" className="relative border-b border-hairline">
-      <div className="max-w-6xl mx-auto px-5 py-24 grid lg:grid-cols-[1fr_1.2fr] gap-12 items-start">
+      <div className="max-w-6xl mx-auto px-5 py-16 md:py-24 grid lg:grid-cols-[1fr_1.2fr] gap-12 items-start">
         <Reveal>
           <div>
             <SectionHeader
@@ -693,7 +693,7 @@ function NetworkStatus() {
 
   return (
     <section id="network" className="relative border-b border-hairline bg-surface-sunk/30">
-      <div className="max-w-6xl mx-auto px-5 py-24">
+      <div className="max-w-6xl mx-auto px-5 py-16 md:py-24">
         <div className="grid lg:grid-cols-[1fr_1.2fr] gap-12 items-start">
           <div>
             <SectionHeader
@@ -747,14 +747,14 @@ function NetworkStatus() {
             </div>
             <div className="divide-y divide-hairline">
               {venues.map((v) => (
-                <div key={v.name + v.region} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 px-5 py-3 text-sm">
-                  <div className="flex items-center gap-3 min-w-0">
+                <div key={v.name + v.region} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_auto] items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3 text-sm">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <TokenIcon symbol={v.name} src={venueIcon(v.name)} size={22} />
                     <span className="font-medium text-fg truncate">{v.name}</span>
-                    <span className="text-fg-subtle text-xs">on {v.region}</span>
+                    <span className="text-fg-subtle text-xs truncate hidden min-[420px]:inline">on {v.region}</span>
                   </div>
-                  <LatencySparkline series={v.series} />
-                  <div className="flex items-center gap-3 text-xs">
+                  <span className="hidden sm:block"><LatencySparkline series={v.series} /></span>
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs shrink-0">
                     <span className="font-mono tabular text-fg-muted">{v.latency} ms</span>
                     <Badge tone="success" dot>live</Badge>
                   </div>
@@ -839,7 +839,7 @@ function Calculator() {
 
   return (
     <section id="calculator" className="relative border-b border-hairline">
-      <div className="max-w-6xl mx-auto px-5 py-24 grid lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-6xl mx-auto px-5 py-16 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
         <Reveal>
           <div>
             <SectionHeader
@@ -958,7 +958,7 @@ function BusinessModel() {
 
   return (
     <section id="business-model" className="relative border-b border-hairline bg-surface-sunk/30">
-      <div className="max-w-6xl mx-auto px-5 py-24">
+      <div className="max-w-6xl mx-auto px-5 py-16 md:py-24">
         <SectionHeader
           align="left"
           eyebrow="Business model"
@@ -1038,7 +1038,7 @@ function PartnerProgramme() {
 
   return (
     <section id="partner-programme" className="relative border-b border-hairline">
-      <div className="max-w-6xl mx-auto px-5 py-24">
+      <div className="max-w-6xl mx-auto px-5 py-16 md:py-24">
         <SectionHeader
           align="left"
           eyebrow="Partner programme"
@@ -1052,11 +1052,11 @@ function PartnerProgramme() {
               <div className="text-[11px] uppercase tracking-[0.18em] text-accent font-semibold mb-5">7-level unilevel referral structure</div>
               <div className="space-y-1.5">
                 {levels.map((l) => (
-                  <div key={l.level} className="grid grid-cols-[64px_1fr_52px_1.2fr] items-center gap-3 rounded-lg border border-hairline bg-surface px-3.5 py-2.5">
+                  <div key={l.level} className="grid grid-cols-[58px_1fr_auto] sm:grid-cols-[64px_1fr_52px_1.2fr] items-center gap-3 rounded-lg border border-hairline bg-surface px-3.5 py-2.5">
                     <span className="text-[12px] font-semibold text-accent">Level {l.level}</span>
                     <span className="text-[13px] text-fg truncate">{l.label}</span>
                     <span className="text-[13px] font-semibold text-fg tabular text-right">{l.pct}%</span>
-                    <span className="relative h-2 rounded-full bg-surface-2 overflow-hidden">
+                    <span className="relative h-2 rounded-full bg-surface-2 overflow-hidden hidden sm:block">
                       <span
                         className="absolute inset-y-0 left-0 rounded-full bg-accent"
                         style={{ width: `${Math.max(3, (l.pct / 18) * 100)}%` }}
@@ -1104,7 +1104,7 @@ function Governance() {
   ];
   return (
     <section id="governance" className="relative border-b border-hairline bg-surface-sunk/30">
-      <div className="max-w-6xl mx-auto px-5 py-24">
+      <div className="max-w-6xl mx-auto px-5 py-16 md:py-24">
         <SectionHeader
           eyebrow="Governance & audits"
           title="Trust, on record."
@@ -1196,7 +1196,7 @@ function Testimonials() {
   const row = [...QUOTES, ...QUOTES];
   return (
     <section className="relative border-b border-hairline overflow-hidden">
-      <div className="max-w-6xl mx-auto px-5 py-24">
+      <div className="max-w-6xl mx-auto px-5 py-16 md:py-24">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <SectionHeader
             align="left"
@@ -1260,7 +1260,7 @@ function FAQ() {
   ];
   return (
     <section id="faq" className="relative border-b border-hairline bg-surface">
-      <div className="max-w-5xl mx-auto px-5 py-24">
+      <div className="max-w-5xl mx-auto px-5 py-16 md:py-24">
         <SectionHeader
           eyebrow="FAQ"
           title="Answers, in plain English."
@@ -1331,7 +1331,7 @@ function FinalCTA() {
 
   return (
     <section className="relative border-b border-hairline">
-      <div className="max-w-6xl mx-auto px-5 py-24">
+      <div className="max-w-6xl mx-auto px-5 py-16 md:py-24">
         <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-10 md:p-16 text-center">
           {/* Layered backdrop */}
           <div aria-hidden className="absolute inset-0 dot-bg opacity-30 mask-radial-fade" />
