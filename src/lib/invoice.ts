@@ -57,12 +57,14 @@ const STATUS_LABEL: Record<number, string> = {
 
 type RGB = [number, number, number];
 
-/** Brand palette — accent matches --accent in globals.css. */
+/** Brand palette — matches the app's emerald accent + dark canvas. */
 const C = {
-  accent:     [0, 172, 112] as RGB,   // oklch(64% 0.18 165)
-  accentDark: [0, 138, 90] as RGB,    // pressed/strong variant
-  mint:       [228, 248, 239] as RGB, // accent-soft
-  mintLine:   [196, 235, 218] as RGB,
+  accent:     [16, 185, 129] as RGB,  // #10b981 brand emerald
+  accentDark: [5, 150, 105] as RGB,   // #059669 pressed/strong
+  mint:       [209, 250, 229] as RGB, // #d1fae5 accent-soft
+  mintLine:   [167, 243, 208] as RGB, // #a7f3d0
+  dark:       [11, 15, 14] as RGB,    // #0b0f0e brand canvas (masthead)
+  darkLift:   [18, 24, 22] as RGB,    // slightly lifted dark
   ink:        [16, 24, 32] as RGB,
   muted:      [110, 122, 134] as RGB,
   subtle:     [148, 158, 168] as RGB,
@@ -70,6 +72,29 @@ const C = {
   paper:      [255, 255, 255] as RGB,
   panel:      [246, 249, 248] as RGB,
 };
+
+/* ───────────────────── brand logo (embedded) ─────────────────────────── */
+
+let _logoCache: string | null | undefined;
+
+/** Load /logo.png as a base64 data URL (cached) for embedding in the PDF. */
+async function loadLogo(): Promise<string | null> {
+  if (_logoCache !== undefined) return _logoCache;
+  try {
+    const res = await fetch('/logo.png');
+    if (!res.ok) throw new Error('logo fetch failed');
+    const blob = await res.blob();
+    _logoCache = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    _logoCache = null;
+  }
+  return _logoCache;
+}
 
 /** Status chip colours (text on a white chip). */
 const STATUS_COLOR: Record<string, RGB> = {
@@ -199,50 +224,58 @@ function chip(doc: jsPDF, label: string, right: number, y: number, fg: RGB, bg: 
   return w;
 }
 
-/** Emerald masthead with logo mark, wordmark and document title. */
-function drawMasthead(doc: jsPDF, title: string, subtitle: string, height: number) {
-  doc.setFillColor(...C.accent);
+/** Dark brand masthead with the real BEX logo, wordmark and document title. */
+function drawMasthead(doc: jsPDF, title: string, subtitle: string, height: number, logo: string | null) {
+  // Dark brand band + emerald accent line at the base.
+  doc.setFillColor(...C.dark);
   doc.rect(0, 0, 210, height, 'F');
-  doc.setFillColor(...C.accentDark);
+  doc.setFillColor(...C.accent);
   doc.rect(0, height, 210, 1.4, 'F');
 
-  // Soft decorative discs in the band (low-opacity white).
+  // Soft emerald glow discs in the band (low-opacity).
   try {
-    const g = (doc as any).GState ? new (doc as any).GState({ opacity: 0.10 }) : null;
+    const g = (doc as any).GState ? new (doc as any).GState({ opacity: 0.14 }) : null;
     if (g) {
       doc.saveGraphicsState();
       doc.setGState(g);
-      doc.setFillColor(255, 255, 255);
-      doc.circle(168, 2, 24, 'F');
-      doc.circle(199, height - 4, 16, 'F');
-      doc.circle(135, height + 2, 10, 'F');
+      doc.setFillColor(...C.accent);
+      doc.circle(176, 0, 26, 'F');
+      doc.circle(202, height - 2, 16, 'F');
       doc.restoreGraphicsState();
     }
   } catch { /* decorative only — never block the download */ }
 
-  // Logo mark: white rounded tile with the accent "B".
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(16, 12, 11.5, 11.5, 2.8, 2.8, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.setTextColor(...C.accentDark);
-  doc.text('B', 21.75, 19.9, { align: 'center' });
+  const ly = (height - 13) / 2;       // vertically-centred logo top
+  const textY = ly + 6.4;             // wordmark baseline
 
-  doc.setFontSize(19);
+  // The real brand logo (falls back to an emerald tile if it can't load).
+  if (logo) {
+    doc.addImage(logo, 'PNG', 16, ly, 13, 13);
+  } else {
+    doc.setFillColor(...C.accent);
+    doc.roundedRect(16, ly, 13, 13, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(...C.dark);
+    doc.text('B', 22.5, ly + 9, { align: 'center' });
+  }
+
+  // Wordmark + contact.
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
   doc.setTextColor(255, 255, 255);
-  doc.text('BEX', 31.5, 19.2);
+  doc.text('BEX', 33, textY);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
+  doc.setFontSize(7.3);
   doc.setTextColor(...C.mint);
-  doc.text(`${BRAND.name} · ${BRAND.email}`, 31.5, 24.5);
+  doc.text(`${BRAND.name} · ${BRAND.email}`, 33, textY + 5);
 
+  // Document title + subtitle (right-aligned).
+  eyebrow(doc, title, 194, ly + 4, C.accent, 'right');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(...C.mint);
-  trackedRight(doc, title.toUpperCase(), 194, 15.5, 1.4);
   doc.setFontSize(13.5);
   doc.setTextColor(255, 255, 255);
-  doc.text(subtitle, 194, 22.5, { align: 'right' });
+  doc.text(subtitle, 194, ly + 11.5, { align: 'right' });
 }
 
 function drawBilledTo(doc: jsPDF, customer: InvoiceCustomer, x: number, y: number) {
@@ -282,12 +315,13 @@ function drawFooter(doc: jsPDF) {
 /* ───────────────────────────── invoice ──────────────────────────────── */
 
 /** Single-transaction A4 invoice → downloads `<invoice-number>.pdf`. */
-export function generateInvoicePdf(row: InvoiceRow, customer: InvoiceCustomer): void {
+export async function generateInvoicePdf(row: InvoiceRow, customer: InvoiceCustomer): Promise<void> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const number = invoiceNumber(row);
   const status = statusLabel(row);
+  const logo = await loadLogo();
 
-  drawMasthead(doc, 'Invoice', number, 40);
+  drawMasthead(doc, 'Invoice', number, 40, logo);
   chip(doc, status, 194, 27.5, STATUS_COLOR[status] ?? C.muted, [255, 255, 255]);
 
   // Meta strip: billed-to · dates · reference.
@@ -370,15 +404,16 @@ export function generateInvoicePdf(row: InvoiceRow, customer: InvoiceCustomer): 
 /* ──────────────────────────── statement ─────────────────────────────── */
 
 /** Multi-row statement of the current filtered ledger view. */
-export function generateStatementPdf(
+export async function generateStatementPdf(
   rows: InvoiceRow[],
   customer: InvoiceCustomer,
   meta: { filterLabel?: string; from?: string; to?: string } = {},
-): void {
+): Promise<void> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const today = new Date().toISOString().slice(0, 10);
+  const logo = await loadLogo();
 
-  drawMasthead(doc, 'Account statement', `${rows.length} transactions`, 36);
+  drawMasthead(doc, 'Account statement', `${rows.length} transactions`, 36, logo);
 
   // En dash, not '→' — the arrow glyph isn't in jsPDF's WinAnsi fonts.
   const range = meta.from || meta.to
