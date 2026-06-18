@@ -78,9 +78,9 @@ function MarketingNav() {
           <a href="#governance"   className="hover:text-fg transition-colors">Governance</a>
           <a href="#faq"          className="hover:text-fg transition-colors">FAQ</a>
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <ThemeToggle className="hidden sm:inline-grid" />
-          <Link href="/auth/login"><Button variant="ghost" size="sm">Sign in</Button></Link>
+          <Link href="/auth/login" className="hidden min-[420px]:inline-flex"><Button variant="ghost" size="sm">Sign in</Button></Link>
           <Link href="/auth/register">
             <Button size="sm" trailingIcon={<ArrowRight className="size-3.5" />}>Get started</Button>
           </Link>
@@ -1228,7 +1228,7 @@ function Testimonials() {
 
 function QuoteCard({ q }: { q: Quote }) {
   return (
-    <Card className="relative w-[360px] shrink-0 transition-colors hover:border-border-strong">
+    <Card className="relative w-[300px] sm:w-[360px] shrink-0 transition-colors hover:border-border-strong">
       {/* Oversized quote watermark */}
       <Quote aria-hidden className="absolute -top-2 right-3 size-12 text-accent/15" strokeWidth={1.2} />
       <CardBody className="p-5 space-y-4">

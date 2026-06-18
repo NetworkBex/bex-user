@@ -5,7 +5,7 @@ import type { CompensationPlan } from '@/lib/affiliate';
 /** Visualizes the 7 unilevel rates, marking which ones the user has unlocked. */
 export function LevelLadder({ plan, unlocked }: { plan: CompensationPlan; unlocked: number }) {
   return (
-    <div className="grid grid-cols-7 gap-1.5">
+    <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
       {plan.unilevel.map((l) => {
         const open = l.level <= unlocked;
         return (

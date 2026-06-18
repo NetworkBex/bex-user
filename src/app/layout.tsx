@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/ToastProvider';
 import { themeInitScript } from '@/components/ui/ThemeToggle';
@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title: 'BEX Network — Verified Web3 Execution',
   description: 'Verification-first Web3 execution infrastructure with AI-driven trading operations and on-chain receipts.',
   metadataBase: new URL('https://bexnetwork.io'),
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#0b0f0e',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
