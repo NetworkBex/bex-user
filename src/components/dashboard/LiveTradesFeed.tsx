@@ -62,17 +62,17 @@ function FeedRowSkeleton({ delay = 0, compact = false }: { delay?: number; compa
     <div
       className={cn(
         'grid items-center gap-2 rounded-md',
-        compact ? 'grid-cols-[44px_56px_1fr_1fr_72px_72px] px-2 py-1.5' : 'grid-cols-[44px_56px_1fr_1fr_1fr_80px_72px_28px] px-3 py-2.5'
+        compact ? 'grid-cols-[36px_44px_1fr_1fr] px-2 py-1.5' : 'grid-cols-[44px_56px_1fr_1fr_1fr_80px_72px_28px] px-3 py-2.5'
       )}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <span className="skeleton h-5 w-10 rounded" />
+      <span className="skeleton h-5 w-8 rounded" />
       <span className="skeleton h-4 w-9 rounded-full" />
-      <span className="skeleton h-3.5 w-16 ml-auto" />
-      <span className="skeleton h-3.5 w-14 ml-auto" />
+      <span className="skeleton h-3.5 w-12 ml-auto" />
+      <span className="skeleton h-3.5 w-12 ml-auto" />
       {!compact && <span className="skeleton h-3.5 w-20 ml-auto" />}
-      <span className={cn('skeleton h-3.5 w-16', compact && 'ml-auto')} />
-      <span className={cn('skeleton h-3.5 w-14 ml-auto', compact && 'hidden')} />
+      {!compact && <span className="skeleton h-3.5 w-16 ml-auto" />}
+      {!compact && <span className="skeleton h-3.5 w-14 ml-auto" />}
       {!compact && <span className="skeleton size-5 rounded ml-auto" />}
     </div>
   );
@@ -155,7 +155,7 @@ export function LiveTradesFeed({
   const isConnected = status?.connected === true;
 
   return (
-    <Card className={cn('flex flex-col', className)}>
+    <Card className={cn('flex flex-col min-w-0 w-full overflow-hidden', className)}>
       <CardHeader
         title="Bex trades"
         icon={<Activity className="size-4" />}
@@ -189,8 +189,8 @@ export function LiveTradesFeed({
         </div>
       )}
 
-      <CardBody className="p-0 flex-1 min-h-0">
-        <div className="overflow-y-auto" style={{ maxHeight }}>
+      <CardBody className="p-0 flex-1 min-h-0 min-w-0">
+        <div className="overflow-auto" style={{ maxHeight }}>
           {loading && (
             <div className="p-2 space-y-1">
               {[0, 1, 2, 3, 4, 5].map((i) => (

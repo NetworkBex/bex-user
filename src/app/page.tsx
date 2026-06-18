@@ -172,7 +172,7 @@ function Hero() {
       <HeroBackdrop />
 
       <div className="relative max-w-6xl mx-auto px-5 py-14 md:py-28 grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-12 items-center">
-        <div className="animate-rise-in">
+        <div className="animate-rise-in min-w-0">
           <Badge tone="accent" className="mb-5">
             <Sparkles className="size-3" />
             Verification-first infrastructure · live on mainnet
@@ -310,11 +310,11 @@ function PriceTickerStrip() {
 
 function HeroPreview() {
   return (
-    <div className="relative animate-rise-in [animation-delay:80ms]">
+    <div className="relative animate-rise-in [animation-delay:80ms] min-w-0 w-full">
       {/* Glow */}
       <div className="absolute -inset-8 bg-accent/15 blur-3xl rounded-full pointer-events-none animate-glow" />
 
-      <div className="relative">
+      <div className="relative min-w-0">
         <LiveTradesFeed compact defaultVisible={10} maxHeight={520} />
       </div>
     </div>
