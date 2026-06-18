@@ -108,6 +108,7 @@ export const transactionAPI = {
   list: (params?: any) => api.get('/transactions/', { params }),
   deposit: (data: any) => api.post('/transactions/deposit/', data),
   withdraw: (data: any) => api.post('/transactions/withdraw/', data),
+  withdrawConfig: () => api.get('/transactions/withdraw_config/'),
   uploadProof: (data: FormData) => api.post('/transactions/upload_proof/', data, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
