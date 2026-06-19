@@ -1185,13 +1185,6 @@ function Governance() {
 
 type Quote = { quote: string; name: string; role: string; icon: React.ReactNode };
 
-const QUOTES: Quote[] = [
-  { quote: 'I run trading desks for a living. BEX is the first system where I can hand an LP a block-explorer link and have them nod, not squint.', name: 'M. Okafor',  role: 'Head of Trading, Meridian Digital', icon: <Building2 className="size-4" /> },
-  { quote: 'The receipt model is the differentiator. I no longer have to trust a dashboard — I can grep the chain.',                          name: 'A. Reinhart', role: 'Treasury Lead, Folio Labs',          icon: <Coins className="size-4" /> },
-  { quote: 'Auditable, deterministic, fast. It is what execution infrastructure should have looked like five years ago.',                    name: 'D. Vance',   role: 'Principal Engineer, Northcap',         icon: <Boxes className="size-4" /> },
-  { quote: 'Onboarding a new partner used to take a week of due diligence. With BEX it is a single shared link.',                            name: 'S. Iqbal',   role: 'BD Lead, Solstice Capital',           icon: <Cable className="size-4" /> },
-];
-
 // Rotating icons for admin-managed testimonies (the model stores only
 // author + body, so we assign an icon by position for visual variety).
 const QUOTE_ICONS = [
@@ -1201,9 +1194,9 @@ const QUOTE_ICONS = [
 ];
 
 function Testimonials() {
-  // Prefer testimonies set in the admin; fall back to the curated set so the
-  // section is never empty (e.g. before any are added).
-  const [quotes, setQuotes] = useState<Quote[]>(QUOTES);
+  // Only show testimonies that are set in the admin. `null` = still loading;
+  // an empty array = none configured (we hide the whole section).
+  const [quotes, setQuotes] = useState<Quote[] | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -1218,15 +1211,18 @@ function Testimonials() {
             role: '',
             icon: QUOTE_ICONS[i % QUOTE_ICONS.length],
           }));
-        if (alive && mapped.length) setQuotes(mapped);
+        if (alive) setQuotes(mapped);
       })
-      .catch(() => { /* keep the fallback */ });
+      .catch(() => { if (alive) setQuotes([]); });
     return () => { alive = false; };
   }, []);
 
+  // Nothing set in the admin (or still loading) → render nothing.
+  if (!quotes || quotes.length === 0) return null;
+
   // Duplicate so the marquee can scroll seamlessly without a gap. With very
   // few quotes, duplicate more so the row still fills the width.
-  const base = quotes.length && quotes.length < 4 ? [...quotes, ...quotes, ...quotes] : quotes;
+  const base = quotes.length < 4 ? [...quotes, ...quotes, ...quotes] : quotes;
   const row = [...base, ...base];
   return (
     <section className="relative border-b border-hairline overflow-hidden">
