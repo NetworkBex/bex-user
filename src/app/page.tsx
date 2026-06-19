@@ -22,6 +22,7 @@ import { LanguagePicker } from '@/components/widgets/LanguagePicker';
 import { Reveal } from '@/components/landing/Reveal';
 import { Counter } from '@/components/landing/Counter';
 import { LiveTradesFeed } from '@/components/dashboard/LiveTradesFeed';
+import { coreAPI } from '@/lib/api';
 import { formatMoney, formatCompact, cn } from '@/lib/ui';
 
 // Mirrors backend/core/migrations/0008_retier_invest_plans.py — smaller
@@ -1191,9 +1192,42 @@ const QUOTES: Quote[] = [
   { quote: 'Onboarding a new partner used to take a week of due diligence. With BEX it is a single shared link.',                            name: 'S. Iqbal',   role: 'BD Lead, Solstice Capital',           icon: <Cable className="size-4" /> },
 ];
 
+// Rotating icons for admin-managed testimonies (the model stores only
+// author + body, so we assign an icon by position for visual variety).
+const QUOTE_ICONS = [
+  <Building2 className="size-4" />, <Coins className="size-4" />,
+  <Boxes className="size-4" />, <Cable className="size-4" />,
+  <Star className="size-4" />, <Users className="size-4" />,
+];
+
 function Testimonials() {
-  // Duplicate so the marquee can scroll seamlessly without a gap.
-  const row = [...QUOTES, ...QUOTES];
+  // Prefer testimonies set in the admin; fall back to the curated set so the
+  // section is never empty (e.g. before any are added).
+  const [quotes, setQuotes] = useState<Quote[]>(QUOTES);
+
+  useEffect(() => {
+    let alive = true;
+    coreAPI.testimonies()
+      .then((r) => {
+        const rows = (r.data?.results ?? r.data ?? []) as Array<{ author?: string; body?: string }>;
+        const mapped: Quote[] = rows
+          .filter((t) => (t.body || '').trim())
+          .map((t, i) => ({
+            quote: (t.body || '').trim(),
+            name: (t.author || 'BEX Network member').trim(),
+            role: '',
+            icon: QUOTE_ICONS[i % QUOTE_ICONS.length],
+          }));
+        if (alive && mapped.length) setQuotes(mapped);
+      })
+      .catch(() => { /* keep the fallback */ });
+    return () => { alive = false; };
+  }, []);
+
+  // Duplicate so the marquee can scroll seamlessly without a gap. With very
+  // few quotes, duplicate more so the row still fills the width.
+  const base = quotes.length && quotes.length < 4 ? [...quotes, ...quotes, ...quotes] : quotes;
+  const row = [...base, ...base];
   return (
     <section className="relative border-b border-hairline overflow-hidden">
       <div className="max-w-6xl mx-auto px-5 py-16 md:py-24">
@@ -1239,7 +1273,7 @@ function QuoteCard({ q }: { q: Quote }) {
           </span>
           <div className="min-w-0">
             <div className="text-sm font-semibold text-fg truncate">{q.name}</div>
-            <div className="text-xs text-fg-muted truncate">{q.role}</div>
+            {q.role && <div className="text-xs text-fg-muted truncate">{q.role}</div>}
           </div>
         </div>
       </CardBody>
