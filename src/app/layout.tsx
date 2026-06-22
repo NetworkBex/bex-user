@@ -4,6 +4,7 @@ import { ToastProvider } from '@/components/ToastProvider';
 import { themeInitScript } from '@/components/ui/ThemeToggle';
 import { LiveChat } from '@/components/widgets/LiveChat';
 import { LanguageTranslate } from '@/components/widgets/LanguageTranslate';
+import { TelegramPrompt } from '@/components/widgets/TelegramPrompt';
 
 export const metadata: Metadata = {
   title: 'BEX Network — Verified Web3 Execution',
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ToastProvider>{children}</ToastProvider>
         <LanguageTranslate />
         <LiveChat />
+        <TelegramPrompt />
       </body>
     </html>
   );
