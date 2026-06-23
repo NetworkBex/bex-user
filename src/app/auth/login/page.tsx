@@ -8,6 +8,7 @@ import { authAPI, parseApiError } from '@/lib/api';
 import { useToast } from '@/components/ToastProvider';
 import { AuthShell } from '@/components/layout/AuthShell';
 import { Button, Field, Input } from '@/components/ui';
+import { Turnstile, TURNSTILE_ENABLED } from '@/components/widgets/Turnstile';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,13 +18,18 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [needsVerify, setNeedsVerify] = useState(false);
   const [resending, setResending] = useState(false);
+  const [captcha, setCaptcha] = useState('');
   const { toast } = useToast() || { toast: (() => {}) as any };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (TURNSTILE_ENABLED && !captcha) {
+      toast('Please complete the Cloudflare check', 'error');
+      return;
+    }
     setLoading(true);
     try {
-      const res = await authAPI.login({ email, password });
+      const res = await authAPI.login({ email, password, cf_turnstile_token: captcha });
       const { tokens, is_admin } = res.data;
       localStorage.setItem('access_token', tokens.access);
       localStorage.setItem('refresh_token', tokens.refresh);
@@ -96,7 +102,12 @@ export default function LoginPage() {
             }
           />
         </Field>
-        <Button type="submit" loading={loading} className="w-full" size="lg" trailingIcon={!loading ? <ArrowRight className="size-4" /> : undefined}>
+        {TURNSTILE_ENABLED && (
+          <div className="flex justify-center">
+            <Turnstile onVerify={setCaptcha} onExpire={() => setCaptcha('')} />
+          </div>
+        )}
+        <Button type="submit" loading={loading} disabled={TURNSTILE_ENABLED && !captcha} className="w-full" size="lg" trailingIcon={!loading ? <ArrowRight className="size-4" /> : undefined}>
           {loading ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>

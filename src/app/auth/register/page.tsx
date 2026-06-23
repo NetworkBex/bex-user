@@ -9,6 +9,7 @@ import { COUNTRIES } from '@/lib/countries';
 import { useToast } from '@/components/ToastProvider';
 import { AuthShell } from '@/components/layout/AuthShell';
 import { Button, Field, Input, Select, Badge } from '@/components/ui';
+import { Turnstile, TURNSTILE_ENABLED } from '@/components/widgets/Turnstile';
 
 function scorePassword(pw: string) {
   let s = 0;
@@ -40,6 +41,7 @@ function RegisterPageInner() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [resending, setResending] = useState(false);
+  const [captcha, setCaptcha] = useState('');
 
   useEffect(() => { if (refParam) setReferralCode(refParam); }, [refParam]);
 
@@ -50,9 +52,10 @@ function RegisterPageInner() {
     e.preventDefault();
     if (!referralCode.trim()) { toast('A referral code is required to join', 'error'); return; }
     if (!pwMatches) { toast('Passwords do not match', 'error'); return; }
+    if (TURNSTILE_ENABLED && !captcha) { toast('Please complete the Cloudflare check', 'error'); return; }
     setLoading(true);
     try {
-      const res = await authAPI.register({ ...form, referrer: referralCode.trim() });
+      const res = await authAPI.register({ ...form, referrer: referralCode.trim(), cf_turnstile_token: captcha });
       // New accounts must verify their email before they can sign in.
       if (res.data?.email_verification_required) {
         setSubmitted(true);
@@ -211,7 +214,12 @@ function RegisterPageInner() {
           ))}
         </div>
         <p className="text-[11px] text-fg-subtle">By creating an account you agree to BEX Network's Terms and Privacy Policy.</p>
-        <Button type="submit" loading={loading} className="w-full" size="lg" trailingIcon={!loading ? <ArrowRight className="size-4" /> : undefined}>
+        {TURNSTILE_ENABLED && (
+          <div className="flex justify-center">
+            <Turnstile onVerify={setCaptcha} onExpire={() => setCaptcha('')} />
+          </div>
+        )}
+        <Button type="submit" loading={loading} disabled={TURNSTILE_ENABLED && !captcha} className="w-full" size="lg" trailingIcon={!loading ? <ArrowRight className="size-4" /> : undefined}>
           {loading ? 'Creating account…' : 'Create account'}
         </Button>
       </form>

@@ -72,9 +72,9 @@ export function parseApiError(err: any, fallback = 'Request failed'): string {
 
 // Auth
 export const authAPI = {
-  login: (data: { email: string; password: string }) =>
+  login: (data: { email: string; password: string; cf_turnstile_token?: string }) =>
     api.post('/auth/login/', data),
-  register: (data: { username: string; email: string; password: string; cpassword: string; country: string; referrer?: string }) =>
+  register: (data: { username: string; email: string; password: string; cpassword: string; country: string; referrer?: string; cf_turnstile_token?: string }) =>
     api.post('/auth/register/', data),
   me: () => api.get('/auth/me/'),
   verifyEmail: (token: string) => api.post('/auth/verify-email/', { token }),
