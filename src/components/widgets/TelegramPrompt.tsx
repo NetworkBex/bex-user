@@ -102,13 +102,13 @@ export function TelegramPrompt() {
         <div className="px-6 pt-12 pb-6 text-center">
           <h2 className="text-[18px] font-bold text-fg">Join BEX Network on Telegram</h2>
           <p className="mt-2 text-[13.5px] leading-relaxed text-fg-muted">
-            Get trade signals, daily profit updates, and announcements first —
+            Get infrastructure updates, product news, and direct support —
             straight to your phone.
           </p>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[12px] text-fg-subtle">
-            <span className="inline-flex items-center gap-1.5"><Check className="size-3.5 text-[#229ED9]" /> Live signals</span>
-            <span className="inline-flex items-center gap-1.5"><Check className="size-3.5 text-[#229ED9]" /> Daily profits</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="size-3.5 text-[#229ED9]" /> Updates</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="size-3.5 text-[#229ED9]" /> News</span>
             <span className="inline-flex items-center gap-1.5"><Check className="size-3.5 text-[#229ED9]" /> Support</span>
           </div>
 
