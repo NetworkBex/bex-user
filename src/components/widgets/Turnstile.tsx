@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 
-const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
+// The Turnstile site key is public (it's rendered into the page anyway), so we
+// ship it as a default and still allow an env override per environment.
+const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAADp22a4Ri5YiSBlG';
 
 /** True when a site key is configured — gate submit buttons off this. */
 export const TURNSTILE_ENABLED = !!SITE_KEY;
