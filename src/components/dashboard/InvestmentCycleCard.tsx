@@ -55,32 +55,41 @@ export function InvestmentCycleCard({ cycle, onCashout, cashoutVariant = 'second
   const elapsedMs = Math.max(0, now.getTime() - started.getTime());
   const elapsedDays = Math.min(999, Math.floor(elapsedMs / 86_400_000));
 
-  const hasDuration = typeof cycle.duration === 'number' && cycle.duration >= 1;
-  const timePct = hasDuration
-    ? Math.min(100, (elapsedDays / cycle.duration!) * 100)
-    : null;
-  const remainingDays = hasDuration
-    ? Math.max(0, cycle.duration! - elapsedDays)
-    : null;
+  // Maturity timestamp from the cycle's own due_date (fixed at purchase).
+  const dueMs = cycle.due_date ? new Date(cycle.due_date).getTime() : null;
+  const hasDue = dueMs != null && !Number.isNaN(dueMs);
 
-  const projected = hasDuration && cycle.daily_rate != null
-    ? amount * (cycle.daily_rate / 100) * cycle.duration!
-    : target;
+  // Effective cycle length. Prefer the *actual* maturity window
+  // (due_date − start) so the day-count, progress bar, "days remaining" and
+  // the unlock countdown ALWAYS agree — even if the plan's duration was edited
+  // after the cycle started. Fall back to the plan duration, then nothing.
+  const durationFromDue = hasDue
+    ? Math.max(1, Math.round((dueMs! - started.getTime()) / 86_400_000))
+    : null;
+  const totalDays = durationFromDue
+    ?? (typeof cycle.duration === 'number' && cycle.duration >= 1 ? cycle.duration : null);
+  const hasTimeline = typeof totalDays === 'number' && totalDays >= 1;
+
+  // Never show "Day 9 of 7": clamp the displayed day to the cycle length.
+  const displayDay = hasTimeline ? Math.min(elapsedDays, totalDays!) : elapsedDays;
+  const timePct = hasTimeline ? Math.min(100, (elapsedDays / totalDays!) * 100) : null;
 
   // Maturity lock — mirrors the backend rule: cashout is rejected until
-  // due_date passes (falls back to duration when due_date is absent;
-  // legacy rows with neither stay cashable).
-  const dueMs = cycle.due_date ? new Date(cycle.due_date).getTime() : null;
-  const matured = dueMs != null && !Number.isNaN(dueMs)
-    ? now.getTime() >= dueMs
-    : hasDuration
-      ? elapsedDays >= cycle.duration!
-      : true;
-  const lockMsLeft = dueMs != null && !Number.isNaN(dueMs)
-    ? Math.max(0, dueMs - now.getTime())
-    : remainingDays != null
-      ? remainingDays * 86_400_000
-      : 0;
+  // due_date passes (falls back to the cycle length; legacy rows with neither
+  // stay cashable).
+  const matured = hasDue
+    ? now.getTime() >= dueMs!
+    : hasTimeline ? elapsedDays >= totalDays! : true;
+  const lockMsLeft = hasDue
+    ? Math.max(0, dueMs! - now.getTime())
+    : hasTimeline ? Math.max(0, (totalDays! - elapsedDays) * 86_400_000) : 0;
+
+  // Days left, derived from the same source as the lock so they can't disagree.
+  const remainingDays = hasTimeline ? Math.max(0, Math.ceil(lockMsLeft / 86_400_000)) : null;
+
+  const projected = hasTimeline && cycle.daily_rate != null
+    ? amount * (cycle.daily_rate / 100) * totalDays!
+    : target;
   const lockLabel = (() => {
     const hours = Math.ceil(lockMsLeft / 3_600_000);
     if (hours >= 24) {
@@ -138,18 +147,18 @@ export function InvestmentCycleCard({ cycle, onCashout, cashoutVariant = 'second
       </div>
 
       {/* TIME-ELAPSED progression bar (new centerpiece) */}
-      {hasDuration ? (
+      {hasTimeline ? (
         <div>
           <div className="flex items-baseline justify-between text-[11px] mb-1.5">
             <span className="text-fg-muted inline-flex items-center gap-1">
               <Clock className="size-3" />
-              Day {elapsedDays} of {cycle.duration}
+              Day {displayDay} of {totalDays}
             </span>
             <span className="text-fg tabular font-semibold">{Math.round(timePct!)}%</span>
           </div>
           <div
             className="relative h-2 rounded-full bg-surface-2 overflow-hidden"
-            title={`Day ${elapsedDays} of ${cycle.duration} · ${Math.round(timePct!)}% time elapsed · ${Math.round(roiPct)}% of profit target`}
+            title={`Day ${displayDay} of ${totalDays} · ${Math.round(timePct!)}% time elapsed · ${Math.round(roiPct)}% of profit target`}
           >
             <div
               className="absolute inset-y-0 left-0 bg-accent rounded-full transition-[width] duration-500"
@@ -174,7 +183,7 @@ export function InvestmentCycleCard({ cycle, onCashout, cashoutVariant = 'second
       )}
 
       {/* Secondary ROI progress (thin stripe) — only when we have the new time bar */}
-      {hasDuration && target > 0 && (
+      {hasTimeline && target > 0 && (
         <div>
           <div className="flex items-baseline justify-between text-[10px] mb-1">
             <span className="text-fg-subtle inline-flex items-center gap-1">
@@ -192,7 +201,7 @@ export function InvestmentCycleCard({ cycle, onCashout, cashoutVariant = 'second
       )}
 
       {/* Projected total — only when we have a daily rate + duration */}
-      {hasDuration && cycle.daily_rate != null && (
+      {hasTimeline && cycle.daily_rate != null && (
         <div className="flex items-center justify-between text-[11px] text-fg-muted">
           <span className="inline-flex items-center gap-1">
             <Percent className="size-3" />{cycle.daily_rate.toFixed(3)}% daily
