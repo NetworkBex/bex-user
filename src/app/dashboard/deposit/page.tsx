@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowDownToLine, Coins, CreditCard, Wallet, Copy, Info, Sparkles, CheckCircle2 } from 'lucide-react';
-import { paymentAPI, coreAPI } from '@/lib/api';
+import { paymentAPI, coreAPI, authAPI, investmentAPI } from '@/lib/api';
 import { useToast } from '@/components/ToastProvider';
 import { PageHeader } from '@/components/layout/AppShell';
 import { Card, CardBody, CardHeader, CardDivider } from '@/components/ui/Card';
@@ -70,6 +70,17 @@ export default function DepositPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [extDepositOpen, setExtDepositOpen] = useState(false);
   const [proofOpen, setProofOpen] = useState(false);
+
+  // First-time users (no balance + no cycles) get a simplified, guided flow.
+  const [firstTime, setFirstTime] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      authAPI.me().then((r) => Number(r.data?.customer?.acc_balance ?? 0)).catch(() => 1),
+      investmentAPI.list().then((r) => ((r.data?.results ?? r.data ?? []) as any[]).length).catch(() => 1),
+    ]).then(([bal, invCount]) => { if (alive) setFirstTime(bal <= 0 && invCount === 0); });
+    return () => { alive = false; };
+  }, []);
 
   // Open the proof modal when arriving from the "Upload payment proof" email.
   useEffect(() => {
@@ -243,6 +254,26 @@ export default function DepositPage() {
         breadcrumb={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Deposit' }]}
       />
 
+      {firstTime && (
+        <div className="mb-6 rounded-2xl border border-accent/30 bg-accent-soft/30 p-4 sm:p-5">
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="grid place-items-center size-9 rounded-xl bg-accent text-accent-fg shrink-0"><Sparkles className="size-5" /></span>
+            <div>
+              <div className="text-[15px] font-bold text-fg">Welcome to BEX</div>
+              <div className="text-[12.5px] text-fg-muted">Fund your account in 3 simple steps.</div>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-2.5">
+            {[['1', 'Select deposit amount'], ['2', 'Choose payment method'], ['3', 'Confirm deposit']].map(([n, t]) => (
+              <div key={n} className="flex items-center gap-2 rounded-lg bg-surface/60 px-3 py-2">
+                <span className="grid place-items-center size-6 rounded-full bg-accent text-accent-fg text-[11px] font-bold shrink-0">{n}</span>
+                <span className="text-[12.5px] font-medium text-fg">{t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-[1.2fr_1fr] gap-6">
         <Card>
           <CardHeader title="New deposit" icon={<ArrowDownToLine className="size-4" />} />
@@ -384,7 +415,8 @@ export default function DepositPage() {
                   );
                 })()}
 
-                {/* Divider */}
+                {/* Advanced wallet methods — hidden for first-time users to keep the flow simple. */}
+                {!firstTime && (<>
                 <div className="my-3 flex items-center gap-3 text-[10px] uppercase tracking-wider text-fg-subtle font-semibold">
                   <span className="h-px flex-1 bg-hairline" /> or deposit from a crypto wallet <span className="h-px flex-1 bg-hairline" />
                 </div>
@@ -426,6 +458,7 @@ export default function DepositPage() {
                     );
                   })}
                 </div>
+                </>)}
               </div>
 
               <Button
