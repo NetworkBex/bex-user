@@ -9,6 +9,7 @@ import { Field, Input, Select } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { CycleExplainer } from '@/components/dashboard/CycleExplainer';
 import { formatMoney } from '@/lib/ui';
 
 const MIN_CYCLE_DAYS = 7;
@@ -107,6 +108,7 @@ export function StartCycleDialog({ open, onClose, plans, currencies, initialPlan
       }
     >
       <form id="invest-form" onSubmit={handleInvest} className="space-y-4">
+        <CycleExplainer />
         <Field label="Amount" hint="USD" required>
           <Input
             type="number" step="0.01" min="0"

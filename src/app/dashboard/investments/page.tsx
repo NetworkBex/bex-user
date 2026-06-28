@@ -14,6 +14,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { BalanceChart, BalanceChartSkeleton } from '@/components/dashboard/BalanceChart';
 import { InvestmentCycleCard } from '@/components/dashboard/InvestmentCycleCard';
 import { StartCycleDialog } from '@/components/dashboard/StartCycleDialog';
+import { CycleExplainer } from '@/components/dashboard/CycleExplainer';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { usePagination } from '@/hooks/usePagination';
 import { formatMoney, shortDate } from '@/lib/ui';
@@ -113,6 +114,8 @@ export default function InvestmentsPage() {
         breadcrumb={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Investments' }]}
         actions={<Button leadingIcon={<Plus className="size-4" />} onClick={() => setShowForm(true)}>New cycle</Button>}
       />
+
+      <CycleExplainer className="mb-6" />
 
       {/* Earnings overview strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
