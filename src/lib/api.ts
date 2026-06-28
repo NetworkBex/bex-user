@@ -123,6 +123,9 @@ export const paymentAPI = {
   sync:   (id: number | string) => api.get(`/payments/${id}/sync/`),
   createInvoice: (data: { amount: number | string; currency?: string; pay_currency?: string }) =>
     api.post('/payments/create_invoice/', data),
+  onramps: () => api.get('/payments/onramps/'),
+  onrampSession: (data: { provider: string; amount: number | string }) =>
+    api.post('/payments/onramps/session/', data),
 };
 
 // Investments

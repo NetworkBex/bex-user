@@ -71,6 +71,35 @@ export default function DepositPage() {
   const [extDepositOpen, setExtDepositOpen] = useState(false);
   const [proofOpen, setProofOpen] = useState(false);
 
+  // Live fiat on-ramps (only present when an admin has configured + activated one).
+  const [onramps, setOnramps] = useState<{ key: string; label: string; min_amount_usd: number }[]>([]);
+  const [fiatProvider, setFiatProvider] = useState('');
+  const [fiatLoading, setFiatLoading] = useState(false);
+  useEffect(() => {
+    paymentAPI.onramps()
+      .then((r) => {
+        const list = r.data?.providers || [];
+        setOnramps(list);
+        if (list[0]) setFiatProvider(list[0].key);
+      })
+      .catch(() => setOnramps([]));
+  }, []);
+
+  const startFiat = async () => {
+    if (!fiatProvider) return;
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0) { toast('Enter an amount first', 'error'); return; }
+    setFiatLoading(true);
+    try {
+      const r = await paymentAPI.onrampSession({ provider: fiatProvider, amount: amt });
+      const url = r.data?.url;
+      if (!url) { toast('Could not open checkout', 'error'); return; }
+      window.location.href = url;
+    } catch (err: any) {
+      toast(err?.response?.data?.error || 'Could not start the payment', 'error');
+    } finally { setFiatLoading(false); }
+  };
+
   // First-time users (no balance + no cycles) get a simplified, guided flow.
   const [firstTime, setFirstTime] = useState(false);
   useEffect(() => {
@@ -379,19 +408,45 @@ export default function DepositPage() {
               <div>
                 <div className="text-xs font-medium text-fg-muted mb-2">Method</div>
 
-                {/* Easiest — Card / Bank transfer (fiat). Coming soon. */}
-                <div className="relative flex items-center gap-3.5 p-4 rounded-xl border-2 border-dashed border-border bg-surface-sunk/40 mb-3 opacity-95">
-                  <span className="grid place-items-center size-10 rounded-lg bg-surface-2 text-accent shrink-0"><CreditCard className="size-5" /></span>
-                  <span className="flex-1 min-w-0">
-                    <span className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[15px] font-semibold text-fg">Pay with Card or Bank Transfer</span>
-                      <Badge tone="warning">Coming soon</Badge>
+                {/* Easiest — Card / Bank transfer (fiat). Live when an admin has activated a provider. */}
+                {onramps.length > 0 ? (
+                  <div className="rounded-xl border-2 border-accent/40 bg-accent-soft/30 p-4 mb-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="grid place-items-center size-9 rounded-lg bg-accent text-accent-fg shrink-0"><CreditCard className="size-4.5" /></span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[15px] font-semibold text-fg">Pay with Card or Bank Transfer</div>
+                        <div className="text-[12px] text-fg-muted">Buy with your card or bank — no crypto needed.</div>
+                      </div>
+                      <Badge tone="success">Easiest</Badge>
+                    </div>
+                    {onramps.length > 1 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2.5">
+                        {onramps.map((o) => (
+                          <button key={o.key} type="button" onClick={() => setFiatProvider(o.key)}
+                            className={`px-3 h-8 rounded-lg text-[12.5px] font-medium border transition-colors ${fiatProvider === o.key ? 'border-accent bg-accent-soft text-accent-fg' : 'border-border text-fg-muted hover:text-fg'}`}>
+                            {o.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <Button type="button" onClick={startFiat} loading={fiatLoading} disabled={!amount} className="w-full" leadingIcon={<CreditCard className="size-4" />}>
+                      Continue with {onramps.find((o) => o.key === fiatProvider)?.label || 'card'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="relative flex items-center gap-3.5 p-4 rounded-xl border-2 border-dashed border-border bg-surface-sunk/40 mb-3 opacity-95">
+                    <span className="grid place-items-center size-10 rounded-lg bg-surface-2 text-accent shrink-0"><CreditCard className="size-5" /></span>
+                    <span className="flex-1 min-w-0">
+                      <span className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[15px] font-semibold text-fg">Pay with Card or Bank Transfer</span>
+                        <Badge tone="warning">Coming soon</Badge>
+                      </span>
+                      <span className="block text-[12.5px] text-fg-muted mt-0.5">Buy with a debit/credit card or bank transfer — no crypto needed. Launching shortly.</span>
                     </span>
-                    <span className="block text-[12.5px] text-fg-muted mt-0.5">Buy with a debit/credit card or bank transfer — no crypto needed. Launching shortly.</span>
-                  </span>
-                </div>
+                  </div>
+                )}
 
-                <div className="text-xs font-medium text-fg-muted mb-2">Available now</div>
+                <div className="text-xs font-medium text-fg-muted mb-2">{onramps.length > 0 ? 'Or pay with crypto' : 'Available now'}</div>
 
                 {/* Featured — Pay with Crypto (primary, available) */}
                 {(() => {
