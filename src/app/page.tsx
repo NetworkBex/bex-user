@@ -25,15 +25,6 @@ import { LiveTradesFeed } from '@/components/dashboard/LiveTradesFeed';
 import { coreAPI } from '@/lib/api';
 import { formatMoney, formatCompact, cn } from '@/lib/ui';
 
-// Mirrors backend/core/migrations/0008_retier_invest_plans.py — smaller
-// stake range, longer cycle duration (inverse amount/duration model).
-const PACKAGES: Record<string, { label: string; duration: number; suggested: number }> = {
-  starter:        { label: 'Starter Access',        duration: 30, suggested: 0.2 },
-  advanced:       { label: 'Advanced Access',       duration: 21, suggested: 0.24 },
-  professional:   { label: 'Professional Access',   duration: 14, suggested: 0.28 },
-  institutional:  { label: 'Institutional Access',  duration: 7,  suggested: 0.33 },
-};
-
 const EXECUTION_TICKER_PAIRS = ['ETH/USDC', 'BTC/USDC', 'ARB/USDC', 'SOL/USDC', 'OP/USDC', 'MATIC/USDC'] as const;
 
 export default function HomePage() {
@@ -825,18 +816,42 @@ function NodeGraph() {
 
 /* ────────────────────────────── Calculator ────────────────────────────── */
 
-function Calculator() {
-  const [pkg, setPkg] = useState<keyof typeof PACKAGES | ''>('');
-  const [amount, setAmount] = useState('1000');
-  const [percent, setPercent] = useState('1');
-  const duration = pkg ? PACKAGES[pkg].duration : 0;
+type CalcPlan = { id: number; name: string; min_amount: string; max_amount: string; percentage: string; duration: number };
 
-  const { profit, total, apy } = useMemo(() => {
+function Calculator() {
+  const [plans, setPlans] = useState<CalcPlan[]>([]);
+  const [planId, setPlanId] = useState<number | ''>('');
+  const [amount, setAmount] = useState('1000');
+
+  // Load the live investment plans so the estimator matches what's actually offered.
+  useEffect(() => {
+    coreAPI.investPlans()
+      .then((rows: any) => {
+        const list = (Array.isArray(rows) ? rows : (rows?.results ?? rows?.data ?? [])) as CalcPlan[];
+        setPlans([...list].sort((a, b) => parseFloat(a.min_amount) - parseFloat(b.min_amount)));
+      })
+      .catch(() => {});
+  }, []);
+
+  const plan = plans.find((p) => p.id === planId) || null;
+  const rate = plan ? parseFloat(plan.percentage) : 0;
+  const duration = plan ? plan.duration : 0;
+  const min = plan ? parseFloat(plan.min_amount) : 0;
+  const max = plan ? parseFloat(plan.max_amount) : 0;
+
+  const { profit, total, apy, outOfRange } = useMemo(() => {
     const a = parseFloat(amount) || 0;
-    const p = parseFloat(percent) || 0;
-    const profit = (p / 100) * a * duration;
-    return { profit, total: a + profit, apy: duration ? p * 365 : 0 };
-  }, [amount, percent, duration]);
+    const profit = (rate / 100) * a * duration;
+    return { profit, total: a + profit, apy: duration ? rate * 365 : 0, outOfRange: !!plan && (a < min || a > max) };
+  }, [amount, rate, duration, plan, min, max]);
+
+  // Selecting a plan snaps the amount into that plan's allowed range.
+  const choose = (p: CalcPlan) => {
+    setPlanId(p.id);
+    const a = parseFloat(amount) || 0;
+    const lo = parseFloat(p.min_amount), hi = parseFloat(p.max_amount);
+    if (a < lo || a > hi) setAmount(String(lo));
+  };
 
   return (
     <section id="calculator" className="relative border-b border-hairline">
@@ -847,30 +862,30 @@ function Calculator() {
               align="left"
               eyebrow="Returns calculator"
               title="Model a cycle before you commit."
-              description="Pick a structured access cycle and dial in your numbers. This is illustrative — actual yields are governed by your selected protocol parameters."
+              description="Pick a structured access cycle and dial in your amount. Rates and durations are the live plan terms — this is illustrative, not guaranteed."
             />
 
-            {/* Tier comparison row */}
+            {/* Tier comparison row — live plans */}
             <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {Object.entries(PACKAGES).map(([k, v]) => (
+              {plans.map((p) => (
                 <button
                   type="button"
-                  key={k}
-                  onClick={() => { setPkg(k as keyof typeof PACKAGES); setPercent(String(v.suggested)); }}
+                  key={p.id}
+                  onClick={() => choose(p)}
                   className={cn(
                     'group rounded-lg border bg-surface px-3 py-2.5 text-left transition-colors',
-                    pkg === k ? 'border-accent ring-1 ring-accent/40' : 'border-border hover:border-border-strong'
+                    planId === p.id ? 'border-accent ring-1 ring-accent/40' : 'border-border hover:border-border-strong'
                   )}
                 >
-                  <div className="text-[10px] uppercase tracking-wider text-fg-subtle font-semibold">{v.duration}d</div>
-                  <div className="text-sm font-semibold text-fg mt-0.5 truncate">{v.label.split(' ')[0]}</div>
-                  <div className="text-[11px] font-mono text-accent mt-0.5">{v.suggested.toFixed(1)}%/d</div>
+                  <div className="text-[10px] uppercase tracking-wider text-fg-subtle font-semibold">{p.duration}d</div>
+                  <div className="text-sm font-semibold text-fg mt-0.5 truncate">{p.name.split(' ')[0]}</div>
+                  <div className="text-[11px] font-mono text-accent mt-0.5">{parseFloat(p.percentage).toFixed(2)}%/d</div>
                 </button>
               ))}
             </div>
 
             <p className="mt-4 text-[11px] text-fg-subtle inline-flex items-center gap-1.5">
-              <Plug className="size-3" /> tap a tier to pre-fill the estimator
+              <Plug className="size-3" /> tap a tier to load its terms into the estimator
             </p>
           </div>
         </Reveal>
@@ -886,29 +901,28 @@ function Calculator() {
                 action={<Badge tone="accent" dot>live</Badge>}
               />
               <CardBody className="space-y-4">
-                <Field label="Access package">
-                  <Select value={pkg} onChange={(e) => {
-                    const v = e.target.value as keyof typeof PACKAGES | '';
-                    setPkg(v);
-                    if (v) setPercent(String(PACKAGES[v].suggested));
+                <Field label="Access plan">
+                  <Select value={planId} onChange={(e) => {
+                    const v = e.target.value ? Number(e.target.value) : '';
+                    if (v === '') { setPlanId(''); return; }
+                    const p = plans.find((x) => x.id === v);
+                    if (p) choose(p);
                   }}>
                     <option value="">Select a cycle</option>
-                    {Object.entries(PACKAGES).map(([k, v]) => (
-                      <option key={k} value={k}>{v.label} · {v.duration} days</option>
+                    {plans.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} · {p.duration} days · {parseFloat(p.percentage).toFixed(2)}%/day
+                      </option>
                     ))}
                   </Select>
                 </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Amount" hint="USD">
-                    <Input type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
-                  </Field>
-                  <Field label="Daily rate" hint="%">
-                    <Input type="number" step="0.01" value={percent} onChange={(e) => setPercent(e.target.value)} />
-                  </Field>
-                </div>
+                <Field label="Amount" hint={plan ? `${formatMoney(min, { decimals: 0 })} – ${formatMoney(max, { decimals: 0 })}` : 'USD'} error={outOfRange ? `This plan accepts ${formatMoney(min, { decimals: 0 })}–${formatMoney(max, { decimals: 0 })}` : undefined}>
+                  <Input type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                </Field>
                 <div className="rounded-lg border border-hairline bg-surface-sunk/40 divide-y divide-hairline">
-                  <Row label="Duration" value={`${duration} days`} muted={!pkg} />
-                  <Row label="Implied APY" value={`${apy.toFixed(1)}%`} muted={!duration} />
+                  <Row label="Daily rate" value={plan ? `${rate.toFixed(2)}%` : '—'} muted={!plan} />
+                  <Row label="Duration" value={plan ? `${duration} days` : '—'} muted={!plan} />
+                  <Row label="Implied APY" value={duration ? `${apy.toFixed(0)}%` : '—'} muted={!duration} />
                   <Row label="Estimated profit" value={formatMoney(profit, { sign: true })} tone="success" />
                   <Row label="Total return" value={formatMoney(total)} bold />
                 </div>
