@@ -12,6 +12,7 @@ import {
   Copy, ChevronRight, ShieldCheck, Coins, TrendingUp, Trophy, Receipt,
 } from 'lucide-react';
 import { authAPI, transactionAPI, investmentAPI, userAPI, earningsAPI } from '@/lib/api';
+import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
 import { Badge, StatusPill } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader, CardDivider } from '@/components/ui/Card';
@@ -241,6 +242,11 @@ export default function DashboardPage() {
       <PageHeader
         title={user ? <>Welcome back, <span className="text-gradient">{user.username}</span></> : 'Welcome back'}
         description="Here's how your money is working today."
+      />
+
+      <OnboardingChecklist
+        funded={Number(user?.acc_balance ?? 0) > 0 || (stats.totalDeposit ?? 0) > 0}
+        hasCycle={(investments?.length ?? 0) > 0}
       />
 
       {/* ── HERO: balance + featured event ───────────────────────── */}

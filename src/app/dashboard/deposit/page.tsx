@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDownToLine, Coins, CreditCard, Wallet, Copy, Info, Sparkles } from 'lucide-react';
+import { ArrowDownToLine, Coins, CreditCard, Wallet, Copy, Info, Sparkles, CheckCircle2 } from 'lucide-react';
 import { paymentAPI, coreAPI } from '@/lib/api';
 import { useToast } from '@/components/ToastProvider';
 import { PageHeader } from '@/components/layout/AppShell';
@@ -23,7 +23,7 @@ import { formatMoney } from '@/lib/ui';
 // NOWPayments is the primary method (shown first, default-selected) and is
 // presented generically — the gateway brand is never surfaced to users.
 const METHODS = [
-  { id: 'nowpayments',label: 'Instant deposit',  desc: 'Pay by card or 40+ cryptocurrencies — auto-credited on confirmation.', icon: <CreditCard className="size-4" /> },
+  { id: 'nowpayments',label: 'Pay with Crypto',  desc: 'Pay with 40+ cryptocurrencies — auto-credited on confirmation.', icon: <Coins className="size-4" /> },
   { id: 'bex_wallet', label: 'BEX wallet',       desc: 'Send instantly from your in-browser wallet.', icon: <Wallet className="size-4" /> },
   { id: 'wallet',     label: 'External wallet',  desc: 'Send from any external Web3 wallet.',         icon: <Wallet className="size-4" /> },
 ];
@@ -348,7 +348,21 @@ export default function DepositPage() {
               <div>
                 <div className="text-xs font-medium text-fg-muted mb-2">Method</div>
 
-                {/* Featured — Instant deposit (primary) */}
+                {/* Easiest — Card / Bank transfer (fiat). Coming soon. */}
+                <div className="relative flex items-center gap-3.5 p-4 rounded-xl border-2 border-dashed border-border bg-surface-sunk/40 mb-3 opacity-95">
+                  <span className="grid place-items-center size-10 rounded-lg bg-surface-2 text-accent shrink-0"><CreditCard className="size-5" /></span>
+                  <span className="flex-1 min-w-0">
+                    <span className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[15px] font-semibold text-fg">Pay with Card or Bank Transfer</span>
+                      <Badge tone="warning">Coming soon</Badge>
+                    </span>
+                    <span className="block text-[12.5px] text-fg-muted mt-0.5">Buy with a debit/credit card or bank transfer — no crypto needed. Launching shortly.</span>
+                  </span>
+                </div>
+
+                <div className="text-xs font-medium text-fg-muted mb-2">Available now</div>
+
+                {/* Featured — Pay with Crypto (primary, available) */}
                 {(() => {
                   const m = METHODS.find((x) => x.id === 'nowpayments')!;
                   const active = method === m.id;
@@ -520,17 +534,25 @@ export default function DepositPage() {
             </CardBody>
           </Card>
 
-          {/* Already paid → upload receipt */}
+          {/* Payment is auto-confirmed; manual upload is a fallback only. */}
           <Card>
             <CardBody className="p-4 flex items-center gap-3">
-              <span className="grid place-items-center size-10 rounded-lg bg-accent-soft text-accent shrink-0">
-                <Coins className="size-4" />
+              <span className="grid place-items-center size-10 rounded-lg bg-success-soft text-success shrink-0">
+                <CheckCircle2 className="size-5" />
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-[13.5px] font-semibold text-fg">Already paid?</p>
-                <p className="text-[12px] text-fg-muted">Upload your receipt so we can verify it faster.</p>
+                <p className="text-[13.5px] font-semibold text-fg">Payment confirmed automatically</p>
+                <p className="text-[12px] text-fg-muted">
+                  Your deposit is credited automatically after network confirmation — no action required.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setProofOpen(true)}
+                  className="mt-1.5 text-[12px] text-accent hover:underline font-medium"
+                >
+                  Having issues? Upload receipt manually
+                </button>
               </div>
-              <Button variant="secondary" size="sm" onClick={() => setProofOpen(true)}>Upload proof</Button>
             </CardBody>
           </Card>
         </div>
