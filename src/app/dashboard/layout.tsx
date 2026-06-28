@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, TrendingUp, Receipt,
-  Trophy, Activity, UserCircle, ShieldCheck, Video,
+  Trophy, Activity, UserCircle, ShieldCheck, Video, Orbit,
   Wallet as WalletIcon,
 } from 'lucide-react';
 import { AppShell, type NavGroup } from '@/components/layout/AppShell';
@@ -31,6 +31,7 @@ const groups: NavGroup[] = [
   {
     label: 'Markets',
     items: [
+      { href: '/dashboard/circles',      label: 'Circles',      icon: <Orbit /> },
       { href: '/dashboard/investments',  label: 'Investments',  icon: <TrendingUp /> },
     ],
   },
