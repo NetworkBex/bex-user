@@ -31,7 +31,7 @@ const groups: NavGroup[] = [
   {
     label: 'Markets',
     items: [
-      { href: '/dashboard/circles',      label: 'Circles',      icon: <Orbit /> },
+      { href: '/dashboard/cycles',       label: 'Cycles',       icon: <Orbit /> },
       { href: '/dashboard/investments',  label: 'Investments',  icon: <TrendingUp /> },
     ],
   },
