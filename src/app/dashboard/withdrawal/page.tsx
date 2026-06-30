@@ -28,9 +28,12 @@ export default function WithdrawalPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const [balance, setBalance] = useState(0);
-  const [cfg, setCfg] = useState<{ enabled: boolean; minUsd: number; maxUsd: number; feePercent: number; feeFlatUsd: number }>({
-    enabled: true, minUsd: 0, maxUsd: 0, feePercent: 0, feeFlatUsd: 0,
-  });
+  const [cfg, setCfg] = useState<{
+    enabled: boolean; minUsd: number; maxUsd: number; feePercent: number; feeFlatUsd: number;
+    window?: { enabled: boolean; open: boolean; next_open: string; schedule: string; window_days: number };
+  }>({ enabled: true, minUsd: 0, maxUsd: 0, feePercent: 0, feeFlatUsd: 0 });
+
+  const windowClosed = !!cfg.window?.enabled && !cfg.window.open;
 
   useEffect(() => {
     authAPI.me().then((r) => setBalance(Number(r.data?.customer?.acc_balance ?? 0))).catch(() => {});
@@ -165,9 +168,18 @@ export default function WithdrawalPage() {
                 <SumRow label="You'll receive" value={formatMoney(net)} strong />
               </div>
 
+              {windowClosed && (
+                <div className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-[12.5px] text-fg-muted">
+                  <span className="text-fg font-semibold">Withdrawals open on the {cfg.window?.schedule}.</span>{' '}
+                  The next window opens <span className="text-fg font-medium">{cfg.window?.next_open}</span>.
+                </div>
+              )}
+
               <Button type="submit" loading={loading} className="w-full" size="lg"
-                disabled={!asset || !network || !!error || amt <= 0 || !cfg.enabled}>
-                {!cfg.enabled ? 'Withdrawals disabled' : loading ? 'Processing…' : 'Request withdrawal'}
+                disabled={!asset || !network || !!error || amt <= 0 || !cfg.enabled || windowClosed}>
+                {!cfg.enabled ? 'Withdrawals disabled'
+                  : windowClosed ? `Opens ${cfg.window?.next_open}`
+                  : loading ? 'Processing…' : 'Request withdrawal'}
               </Button>
             </form>
           </CardBody>
@@ -179,7 +191,10 @@ export default function WithdrawalPage() {
             <p><span className="text-fg font-medium">Double-check the address.</span> Crypto transactions are irreversible — if the address is wrong, the funds are gone.</p>
             <p><span className="text-fg font-medium">Match the network.</span> Your destination must support <span className="text-fg">{asset}</span> on <span className="text-fg">{network || 'the chosen network'}</span>.</p>
             <p><span className="text-fg font-medium">Limits.</span> Min {formatMoney(cfg.minUsd)}{cfg.maxUsd ? ` · max ${formatMoney(cfg.maxUsd)}` : ''}{(cfg.feePercent || cfg.feeFlatUsd) ? ` · fee ${cfg.feePercent ? cfg.feePercent + '%' : ''}${cfg.feeFlatUsd ? (cfg.feePercent ? ' + ' : '') + formatMoney(cfg.feeFlatUsd) : ''}` : ' · no fee'}.</p>
-            <p><span className="text-fg font-medium">Approval window.</span> Withdrawals are reviewed and typically settle within 1 business day.</p>
+            {cfg.window?.enabled && (
+              <p><span className="text-fg font-medium">Withdrawal schedule.</span> Withdrawals are processed every fortnight — open on the <span className="text-fg">{cfg.window.schedule}</span>{cfg.window.window_days > 1 ? ` (${cfg.window.window_days}-day window)` : ''}.</p>
+            )}
+            <p><span className="text-fg font-medium">Approval.</span> Requests are reviewed and settle on the next payout date.</p>
           </CardBody>
         </Card>
       </div>
