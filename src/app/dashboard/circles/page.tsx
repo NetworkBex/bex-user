@@ -93,9 +93,9 @@ export default function CirclesPage() {
         <CardBody className="pt-1 grid sm:grid-cols-2 gap-x-8 gap-y-3">
           {[
             ['When are earnings paid?', 'Daily — the day’s profit is credited automatically each evening while the Circle is active.'],
-            ['Can I withdraw mid-cycle?', 'Your principal is locked until the Circle matures. Earned profit accrues to your balance as it’s credited.'],
+            ['Can I withdraw mid-cycle?', 'Your principal is locked until the Circle matures. Earned profit accrues along the way.'],
             ['What decides my rate?', 'Each access tier sets its own daily rate and duration. Higher tiers run shorter, higher-rate cycles.'],
-            ['What happens at maturity?', 'Your principal returns to your balance. You can withdraw it or start a fresh Circle right away.'],
+            ['What happens at maturity?', 'It settles automatically — your capital returns to your balance and the Circle closes. No action needed; you don’t cash out manually.'],
             ['How do I start?', 'Pick a tier above and tap “Start cycle” — choose your amount and confirm.'],
             ['Is the rate guaranteed?', 'Projections are illustrative. Daily credits follow your tier’s published rate over the cycle.'],
           ].map(([q, a]) => (

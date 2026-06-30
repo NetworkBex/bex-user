@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, Clock, Target, Percent, Lock } from 'lucide-react';
+import { TrendingUp, Clock, Target, Percent, Lock, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/Progress';
@@ -212,29 +212,18 @@ export function InvestmentCycleCard({ cycle, onCashout, cashoutVariant = 'second
         </div>
       )}
 
-      {/* Cash-out action — disabled with a countdown until maturity. */}
-      {onCashout && (
-        matured ? (
-          <Button
-            variant={cashoutVariant}
-            size="sm"
-            className="w-full"
-            onClick={() => onCashout(cycle.id)}
-          >
-            Cash out
-          </Button>
-        ) : (
-          <Button
-            variant={cashoutVariant}
-            size="sm"
-            className="w-full"
-            disabled
-            leadingIcon={<Lock className="size-3.5" />}
-            title={cycle.due_date ? `Cash out unlocks ${shortDate(cycle.due_date)}` : 'Locked until the cycle matures'}
-          >
-            Locked · {lockLabel}
-          </Button>
-        )
+      {/* Cycles settle automatically at maturity — no manual cashout. */}
+      {matured ? (
+        <div className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-success/30 bg-success-soft/30 py-2 text-[12px] font-medium text-success">
+          <CheckCircle2 className="size-3.5" /> Matured — capital returning to your balance
+        </div>
+      ) : (
+        <div
+          className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-surface-sunk/40 py-2 text-[12px] font-medium text-fg-muted"
+          title={cycle.due_date ? `Auto-settles ${shortDate(cycle.due_date)}` : 'Settles automatically at maturity'}
+        >
+          <Lock className="size-3.5" /> Locked · {lockLabel} · auto-settles
+        </div>
       )}
     </div>
   );
